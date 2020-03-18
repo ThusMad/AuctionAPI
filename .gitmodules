@@ -1,0 +1,3 @@
+[submodule "Auction"]
+	path = Auction
+	url = git@github.com:ThusMad/Auction.git
