@@ -1,0 +1,101 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity.Infrastructure;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using EPAM_DataAccessLayer.EF;
+using EPAM_DataAccessLayer.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
+namespace EPAM_DataAccessLayer.Repositories
+{
+    public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
+    {
+        private readonly AuctionContext _context;
+        private readonly DbSet<TEntity> _entities;
+        public Repository(AuctionContext context)
+        {
+            _context = context;
+            _entities = context.Set<TEntity>();
+        }
+
+        public IQueryable<TEntity> GetAll()
+        {
+            
+            return _entities.AsQueryable();
+        }
+
+        public TEntity GetById(Guid id)
+        {
+            return _entities.Find(id);
+        }
+
+        public async Task<TEntity> GetByIdAsync(Guid id)
+        {
+            return await _entities.FindAsync(id);
+        }
+
+        public IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate)
+        {
+            return _entities.Where(predicate);
+        }
+
+        public TEntity Update(TEntity entity)
+        {
+            return _entities.Update(entity).Entity;
+        }
+
+        public void UpdateRange(IEnumerable<TEntity> entities)
+        {
+            _entities.UpdateRange(entities);
+        }
+
+        public TEntity Insert(TEntity entity)
+        {
+            return _entities.Add(entity).Entity;
+        }
+
+        public void InsertRange(IEnumerable<TEntity> entities)
+        {
+            _entities.AddRange(entities);
+        }
+
+        public async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
+        {
+            return (await _entities.AddAsync(entity, cancellationToken)).Entity;
+        }
+
+        public async Task InsertRangeAsync(IEnumerable<TEntity> entities, CancellationToken cancellationToken = default)
+        {
+            await _entities.AddRangeAsync(entities, cancellationToken);
+        }
+
+        public TEntity Delete(TEntity entity)
+        {
+            return _entities.Remove(entity).Entity;
+        }
+
+        public void DeleteRange(IEnumerable<TEntity> entities)
+        {
+            _entities.RemoveRange(entities);
+        }
+
+        public IQueryable<TEntity> ExecuteQueryCommand(string sql, params object[] parameters)
+        {
+            return _entities.FromSqlRaw(sql, parameters);
+        }
+
+        public int SaveChanges()
+        {
+            return _context.SaveChanges();
+        }
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+           return await _context.SaveChangesAsync(cancellationToken);
+        }
+    }
+}

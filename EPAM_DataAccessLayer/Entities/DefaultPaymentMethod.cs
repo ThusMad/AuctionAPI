@@ -5,17 +5,14 @@ using System.Text;
 
 namespace EPAM_DataAccessLayer.Entities
 {
-    [Table("Bids")]
-    public class Bid
+    public class DefaultPaymentMethod
     {
         [Index(IsUnique = true)]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public string PlacerId { get; set; }
-        public Guid AuctionId { get; set; }
-        public Auction Auction { get; set; }
-        [Column(TypeName = "decimal(18,4)")]
-        public decimal Price { get; set; }
-        public long Time { get; set; }
+        public Guid? PaymentMethodId { get; set; }
+        public virtual PaymentMethod PaymentMethod { get; set; }
+        public string UserId { get; set; }
+        public  ApplicationUser User { get; set; }
     }
 }

@@ -355,3 +355,5 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+/EPAM_API/App_Data/Images
+/EPAM_API/wwwroot/images

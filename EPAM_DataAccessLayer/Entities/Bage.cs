@@ -5,17 +5,13 @@ using System.Text;
 
 namespace EPAM_DataAccessLayer.Entities
 {
-    [Table("Bids")]
-    public class Bid
+    public class Bage
     {
         [Index(IsUnique = true)]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public string PlacerId { get; set; }
-        public Guid AuctionId { get; set; }
-        public Auction Auction { get; set; }
-        [Column(TypeName = "decimal(18,4)")]
-        public decimal Price { get; set; }
-        public long Time { get; set; }
+        public string IconUrl { get; set; }
+        public string BackgroundColor { get; set; }
+        public string Description { get; set; }
     }
 }
