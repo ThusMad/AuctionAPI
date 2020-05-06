@@ -5,15 +5,13 @@ using System.Text;
 
 namespace EPAM_DataAccessLayer.Entities
 {
-    public class Media
+    public class Category
     {
         [Index(IsUnique = true)]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public string Url { get; set; }
-        public Media(string url)
-        {
-            Url = url;
-        }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public ICollection<AuctionCategory>? Auctions { get; set; }
     }
 }

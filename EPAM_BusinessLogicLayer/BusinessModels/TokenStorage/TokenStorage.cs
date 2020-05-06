@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using EPAM_BusinessLogicLayer.BusinessModels.TokenStorage.Interfaces;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Entities;
@@ -76,10 +76,11 @@ namespace EPAM_BusinessLogicLayer.BusinessModels.TokenStorage
         private async Task UpdateToken(ApplicationUser user, string newRefreshToken, int lifetime)
         {
             var refreshTokens = _unitOfWork.Find<RefreshToken>(a => a.UserId == user.Id);
+            var tokens = refreshTokens as RefreshToken[] ?? refreshTokens.ToArray();
 
-            if (refreshTokens != null && !refreshTokens.Any())
+            if (!tokens.Any())
             {
-                await _unitOfWork.InsertAsync(new RefreshToken()
+                await _unitOfWork.InsertAsync(new RefreshToken
                 {
                     Token = newRefreshToken,
                     User = user,
@@ -89,7 +90,7 @@ namespace EPAM_BusinessLogicLayer.BusinessModels.TokenStorage
             }
             else
             {
-                var refreshTokenEntity = refreshTokens.First();
+                var refreshTokenEntity = tokens.First();
                 refreshTokenEntity.TokenExpiration =
                     Utility.DateTimeToUnixTimestamp(DateTime.UtcNow.AddMinutes(lifetime));
                 refreshTokenEntity.Token = newRefreshToken;

@@ -1,4 +1,4 @@
-﻿using EPAM_BusinessLogicLayer.DTO;
+﻿using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer.Services.Interfaces

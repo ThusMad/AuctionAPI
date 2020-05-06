@@ -3,18 +3,24 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot;
+using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot.Interfaces;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Payloads;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.Enums;
 using EPAM_DataAccessLayer.Interfaces;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace EPAM_BusinessLogicLayer.Services
 {
@@ -22,49 +28,68 @@ namespace EPAM_BusinessLogicLayer.Services
     {
         private readonly IMapper _mapper;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly ConcurrentDictionary<Guid, List<WebSocket>> _bidUpdateSockets;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork)
+        private readonly ISocketSlot _socketSlot;
+
+        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
         {
-            _bidUpdateSockets = new ConcurrentDictionary<Guid, List<WebSocket>>();
+            _socketSlot = new SocketSlot();
 
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
             _mapper = mapper;
         }
 
-        public AuctionDTO? CreateAuction(AuctionDTO auctionDto, Guid userId, string userRole)
+        public async Task<AuctionDTO> CreateAuction(AuctionDTO auctionDto, Guid userId, string userRole)
         {
-            if (auctionDto.StartPrice < 1 || auctionDto.PriceStep < 1)
-            {
-                throw new ValidationException("Start price or price step less then 1 usd", nameof(auctionDto));
-            }
-            if (auctionDto.Title.Length < 5)
-            {
-                throw new ValidationException("Title too short", nameof(auctionDto));
-            }
             if (auctionDto.StartTime < auctionDto.EndTime && auctionDto.AuctionType == AuctionType.Normal)
             {
                 throw new ValidationException("End date can't be ahead of the start date", nameof(auctionDto));
             }
 
-            ICollection<Media> mediaCollection = new List<Media>();
-            var creator = _unitOfWork.Repository<ApplicationUser>().GetById(userId);
+            var auction = _mapper.Map<AuctionDTO, Auction>(auctionDto,opt =>
+                opt.AfterMap((src, dest) =>
+                {
+                    dest.UserId = userId.ToString();
+                }));
 
-            foreach (var auctionImage in auctionDto.Images)
-            {
-                mediaCollection.Add(new Media(auctionImage));
-            }
-
-            var auction = _mapper.Map<AuctionDTO, Auction>(auctionDto);
-
-            auction.Images = mediaCollection;
-            auction.Creator = creator;
-            auction.CreationTime = Utility.DateTimeToUnixTimestamp(DateTime.UtcNow);
-
-            _unitOfWork.Repository<Auction>().Insert(auction);
-            _unitOfWork.Commit();
+            await _unitOfWork.InsertAsync(auction);
+            await _unitOfWork.CommitAsync();
 
             return _mapper.Map<Auction, AuctionDTO>(auction);
+        }
+
+        public IEnumerable<AuctionDTO> GetAll(int? limit, int? offset)
+        {
+            var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
+            var offsetVal = offset ?? 0;
+
+            var auctions = _unitOfWork.GetAll<Auction>(limitVal, offsetVal)
+                .Include(a => a.Images)
+                .Include(a => a.Creator)
+                .Include(a => a.Categories)
+                    .ThenInclude(x => x.Category)
+                .AsEnumerable();
+
+            return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(auctions);
+        }
+
+        public AuctionDTO GetById(Guid id)
+        {
+            var auction = _unitOfWork.GetById<Auction>(id);
+
+            if (auction == null)
+            {
+                throw new ItemNotFountException(nameof(auction), "Auction with following id not found");
+            }
+
+            return _mapper.Map<Auction, AuctionDTO>(auction);
+        }
+
+        public AuctionDTO Update(AuctionDTO newItem)
+        {
+            return null;
         }
 
         public void DeleteAuction(Guid id)
@@ -74,95 +99,46 @@ namespace EPAM_BusinessLogicLayer.Services
 
         public void PlaceBid(BidDTO bid)
         {
-            //_unitOfWork.Repository<Bid>().Insert();
-
-            if (_bidUpdateSockets.ContainsKey(bid.AuctionId))
-            {
-                foreach (var socket in _bidUpdateSockets[bid.AuctionId])
-                {
-                    Task.Run(async () => SendString(socket, "hello", CancellationToken.None));
-                }
-            }
+            _socketSlot.NotifyAllSubscribers(bid.AuctionId, JsonSerializer.Serialize(bid));
         }
 
         public LatestPricePayload CurrentPrice(Guid id)
         {
-            var bidRepository = _unitOfWork.Repository<Bid>();
-
             return new LatestPricePayload(10, id);
         }
 
-        public IEnumerable<AuctionDTO> GetAll()
+        public IEnumerable<AuctionCategoryDto> GetCategories(int? limit, int? offset)
         {
-            return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(_unitOfWork.Repository<Auction>().GetAll());
+            var categories = _unitOfWork.GetAll<Category>().AsEnumerable();
+            return _mapper.Map<IEnumerable<Category>, IEnumerable<AuctionCategoryDto>>(categories);
         }
 
-        public AuctionDTO? GetAuction(Guid id)
+        public async Task AddCategoriesAsync(IEnumerable<AuctionCategoryDto> categories)
         {
-            var repository = _unitOfWork.Repository<Auction>();
-            var auction = repository.GetById(id);
+            var newCategories = new List<AuctionCategoryDto>();
 
-            return _mapper.Map<Auction, AuctionDTO>(auction);
-        }
-
-        public ICollection<AuctionDTO> Find(Func<bool, AuctionDTO> predicate)
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICollection<AuctionDTO> GetOngoing()
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICollection<AuctionDTO> GetUpcoming()
-        {
-            throw new NotImplementedException();
-        }
-
-        public ICollection<AuctionDTO> GetRandom()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SubscribeToAuctionBidUpdatesAsync(Guid auctionId, WebSocket ws, TaskCompletionSource<object> socketFinishedTcs)
-        {
-            bool addResult = true;
-            bool getResult = true;
-
-            if (!_bidUpdateSockets.ContainsKey(auctionId))
+            foreach (var auctionCategoryDto in categories)
             {
-                while (!_bidUpdateSockets.TryAdd(auctionId, new List<WebSocket>()))
+                if (!await _unitOfWork.AnyAsync<Category>(c => c.Name == auctionCategoryDto.Name))
                 {
-                    Thread.Sleep(10);
+                    newCategories.Add(auctionCategoryDto);
                 }
             }
 
-            _bidUpdateSockets[auctionId].Add(ws);
+            _mapper.Map<IEnumerable<AuctionCategoryDto>, IEnumerable<Category>>(newCategories)
+                .ToList()
+                .ForEach(async a => await _unitOfWork.InsertAsync(a));
 
-            while (ws.State == WebSocketState.Open)
-            {
-                Thread.Sleep(1000 * 15);
-            }
-
-            Debug.WriteLine("closing websocket");
-
-            List<WebSocket> sockets;
-
-            while (!_bidUpdateSockets.TryGetValue(auctionId, out sockets))
-            {
-                Thread.Sleep(10);
-            }
-
-            sockets?.Remove(ws);
-            socketFinishedTcs.SetResult(new object());
+            await _unitOfWork.CommitAsync();
         }
 
-        public static Task SendString(WebSocket ws, string data, CancellationToken cancellation)
+        #region ISlotProvider
+
+        public void SubscribeToSlot(Guid id, WebSocket ws, TaskCompletionSource<object> socketFinishedTcs)
         {
-            var encoded = Encoding.UTF8.GetBytes(data);
-            var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
-            return ws.SendAsync(buffer, WebSocketMessageType.Text, true, cancellation);
+            _socketSlot.SubscribeToSlot(id, ws, socketFinishedTcs);
         }
+
+        #endregion
     }
 }

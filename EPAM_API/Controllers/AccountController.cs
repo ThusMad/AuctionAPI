@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
-using EPAM_API.Models;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,14 +30,14 @@ namespace EPAM_API.Controllers
             _accountService = accountService;
             _userProvider = userProvider;
 
-            if (_logger == null || _accountService == null)
+            if (_userProvider == null || _accountService == null)
             {
-                throw new Exception($"Service wasn't injected in {nameof(AccountController)} ctor");
+                throw new NotInjectedException($"Service wasn't injected in {nameof(AccountController)} ctor");
             }
         }
 
         [AllowAnonymous]
-        [HttpPost("create")]
+        [HttpPost, Route("create")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -53,20 +54,17 @@ namespace EPAM_API.Controllers
         }
 
         [Authorize]
-        [HttpPatch]
-        public IActionResult Update([FromBody]ApplicationUserDto request)
+        [HttpPatch, Route("update")]
+        public async Task<IActionResult> Update([FromBody]ApplicationUserPatchModel request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Malformed request");
             }
 
-            if (request.Id != _userProvider.GetUserId().ToString())
-            {
-                return BadRequest("Can't update foreign user");
-            }
+            var id = _userProvider.GetUserId();
 
-            _accountService.UpdateUser(request);
+            await _accountService.UpdateUserAsync(id, request);
             return Ok();
         }
 
@@ -74,20 +72,47 @@ namespace EPAM_API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(Guid userId)
         {
-            var user = await _accountService.GetUserByIdAsync(userId);
-            if (user != null)
-            {
-                return Ok(JsonSerializer.Serialize(user));
-            }
+            var user = await _accountService.GetUserByIdAsync<ApplicationUserPreviewDTO>(userId);
 
-            return StatusCode(404, $"User with following {nameof(userId)} = {userId} was not found");
+            return Ok(JsonSerializer.Serialize(user));
         }
 
-        [Authorize(Roles = Roles.Administrator)]
-        [HttpGet]
-        public async Task<IActionResult> GetAll(int? limit, int? offset)
+        [Authorize]
+        [HttpDelete]
+        public async Task<IActionResult> Delete()
         {
+            await _accountService.DeleteUserAsync(_userProvider.GetUserId(), "no reason");
+
             return Ok();
+        }
+
+        [Authorize]
+        [HttpGet, Route("detail")]
+        public async Task<IActionResult> GetDetailed(Guid userId)
+        {
+            if (_userProvider.GetUserId() != userId)
+            {
+                return Forbid(JwtBearerDefaults.AuthenticationScheme);
+            }
+
+            var user = await _accountService.GetUserByIdAsync<ApplicationUserDto>(userId);
+            return Ok(JsonSerializer.Serialize(user));
+
+        }
+
+        [Authorize(Roles = Roles.User)]
+        [HttpGet, Route("getAll")]
+        public IActionResult GetAll(int? limit, int? offset)
+        {
+            var users = _accountService.GetAllUsers(limit, offset);
+            var applicationUserDtos = users as ApplicationUserDto[] ?? users.ToArray();
+
+            if (!applicationUserDtos.Any())
+            {
+                return NotFound("There is no users in provided range");
+            }
+
+            return Ok(JsonSerializer.Serialize(applicationUserDtos));
         }
     }
 }

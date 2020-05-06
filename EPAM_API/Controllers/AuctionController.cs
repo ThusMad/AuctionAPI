@@ -7,11 +7,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using EPAM_API.Helpers;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace EPAM_API.Controllers
 {
@@ -30,25 +31,23 @@ namespace EPAM_API.Controllers
 
         [Authorize]
         [HttpPost, Route("create")]
-        public IActionResult Create([FromBody] AuctionDTO request)
+        public async Task<IActionResult> Create([FromBody] AuctionDTO request)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                var auction = _auctionService.CreateAuction(request, _userProvider.GetUserId(), _userProvider.GetUserRole());
-                return Ok(JsonSerializer.Serialize(auction));
+                return BadRequest();
+            }
 
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var auction = await _auctionService.CreateAuction(request, _userProvider.GetUserId(), _userProvider.GetUserRole());
+            return Ok(JsonSerializer.Serialize(auction));
+
         }
 
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Get(Guid id)
         {
-            var auction = _auctionService.GetAuction(id);
+            var auction = _auctionService.GetById(id);
             if (auction == null)
             {
                 return NotFound($"Auction with following id={id} not found");
@@ -59,52 +58,21 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet, Route("getAll")]
-        public IActionResult GetAll(int? limit, int? offset)
+        public IActionResult GetAll(string filters, int? limit, int? offset)
         {
-            try
-            {
-                var auctions = _auctionService.GetAll();
+            var auctions = _auctionService.GetAll(limit, offset);
 
-                return Ok(JsonSerializer.Serialize(auctions));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return Ok(JsonSerializer.Serialize(auctions));
         }
 
         [AllowAnonymous]
         [HttpGet, Route("getByCategory")]
-        public IActionResult GetByCategory(string category)
+        public IActionResult GetByCategory(string category, int? limit, int? offset)
         {
-            try
-            {
-                var auctions = _auctionService.GetAll();
+            var auctions = _auctionService.GetAll(limit, offset);
 
-                return Ok(JsonSerializer.Serialize(auctions));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            return Ok(JsonSerializer.Serialize(auctions));
         }
-
-        [AllowAnonymous]
-        [HttpGet, Route("getAll/filter")]
-        public IActionResult GetByCategory(string[] filters, int? limit, int? offset)
-        {
-            try
-            {
-                var auctions = _auctionService.GetAll();
-
-                return Ok(JsonSerializer.Serialize(auctions));
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
-        }
-
 
         [Authorize]
         [HttpDelete]
@@ -137,6 +105,24 @@ namespace EPAM_API.Controllers
         public IActionResult PlaceBid([FromBody] BidDTO request)
         {
             _auctionService.PlaceBid(request);
+
+            return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("getCategories")]
+        public IActionResult GetCategories(int? limit, int? offset)
+        {
+            var categories = _auctionService.GetCategories(limit, offset);
+
+            return Ok(JsonSerializer.Serialize(categories));
+        }
+
+        [Authorize]
+        [HttpPost, Route("addCategories")]
+        public async Task<IActionResult> AddCategories([FromBody] IEnumerable<AuctionCategoryDto> categories)
+        {
+            await _auctionService.AddCategoriesAsync(categories);
 
             return Ok();
         }

@@ -24,11 +24,11 @@ namespace EPAM_BusinessLogicLayer.ServiceCollection
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AuctionContext>();
 
+
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IAuctionService, AuctionService>();
             services.AddTransient<ITokenStorage, TokenStorage>();
-            //services.AddTransient<IPaymentService, PaymentService>();
-            //services.AddSingleton<IAuctionService, AuctionService>();
             services.AddAutoMapper(Assembly.GetExecutingAssembly());
         }
     }

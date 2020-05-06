@@ -41,15 +41,14 @@ namespace EPAM_API.Middlewares
             if (ex is ItemNotFountException) code = HttpStatusCode.NotFound;
             else if (ex is UserException) code = HttpStatusCode.BadRequest;
             else if (ex is RefreshTokenExpireException) code = HttpStatusCode.Unauthorized;
-            var result = new ErrorDetails()
-            {
-                StatusCode = (int)code,
-                Message = ex.Message
-            }.ToString();
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)code;
-            return context.Response.WriteAsync(result);
+            return context.Response.WriteAsync(new ErrorDetails()
+            {
+                StatusCode = (int)code,
+                Message = ex.Message
+            }.ToString());
         }
     }
 }

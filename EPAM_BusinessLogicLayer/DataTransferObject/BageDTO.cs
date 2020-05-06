@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EPAM_BusinessLogicLayer.DTO
+namespace EPAM_BusinessLogicLayer.DataTransferObject
 {
     class BageDTO
     {

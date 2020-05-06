@@ -11,10 +11,7 @@ namespace EPAM_DataAccessLayer.Configurations
     {
         public void Configure(EntityTypeBuilder<Media> builder)
         {
-            builder.ToTable("Media")
-                .HasOne(b => b.Auction)
-                .WithMany(a => a.Images)
-                .HasForeignKey(b => b.AuctionId);
+            builder.ToTable("Media");
         }
     }
 }

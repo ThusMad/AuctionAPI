@@ -7,7 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Helpers;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;

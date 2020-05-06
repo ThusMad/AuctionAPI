@@ -1,8 +1,11 @@
-﻿using EPAM_DataAccessLayer.Configurations;
+﻿using System.Data.Entity;
+using EPAM_DataAccessLayer.Configurations;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.Interfaces;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace EPAM_DataAccessLayer.EF
 {
@@ -26,6 +29,10 @@ namespace EPAM_DataAccessLayer.EF
             modelBuilder.ApplyConfiguration(new BidConfiguration());
             modelBuilder.ApplyConfiguration(new ApplicationUserConfiguration());
             modelBuilder.ApplyConfiguration(new BageConfiguration());
+            modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new AuctionCategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new DefaultPaymentMethodConfiguration());
         }
     }
+
 }

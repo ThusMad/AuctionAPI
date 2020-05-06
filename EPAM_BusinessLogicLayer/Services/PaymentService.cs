@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.Interfaces;

@@ -23,36 +23,38 @@ namespace EPAM_API.Middlewares
         {
             try
             {
-                _logger.LogInformation($"Processing request {context.Request.Method} {context.Request.Path}");
-
-                var timestamp = context.Request.Query["timestamp"];
-                var recvWindow = context.Request.Query["recvWindow"];
-
-                if (timestamp == string.Empty)
-                {
-                    context.Response.StatusCode = 400;
-                    await context.Response.WriteAsync($"Malformed request, parameter {nameof(timestamp)} must be set");
-                }
-                var timestampVal = long.Parse(timestamp);
-                int? recvWindowVal = null;
-                if (recvWindow != string.Empty)
-                {
-                    recvWindowVal = int.Parse(recvWindow);
-                }
-                if (!TimestampValidator.Validate(timestampVal, recvWindowVal))
-                {
-                    context.Response.StatusCode = 400;
-                    await context.Response.WriteAsync($"Timestamp for this request is outside of the recvWindow");
-                }
-                else
+                if (context.Request.Path.Value.Contains("/uploads/"))
                 {
                     await _next.Invoke(context);
                 }
-            }
-            catch (Exception e)
-            {
-                context.Response.StatusCode = 500;
-                await context.Response.WriteAsync(e.Message);
+                else
+                {
+                    _logger.LogInformation($"Processing request {context.Request.Method} {context.Request.Path}");
+
+                    var timestamp = context.Request.Query["timestamp"];
+                    var recvWindow = context.Request.Query["recvWindow"];
+
+                    if (timestamp == string.Empty)
+                    {
+                        context.Response.StatusCode = 400;
+                        await context.Response.WriteAsync($"Malformed request, parameter {nameof(timestamp)} must be set");
+                    }
+                    var timestampVal = long.Parse(timestamp);
+                    int? recvWindowVal = null;
+                    if (recvWindow != string.Empty)
+                    {
+                        recvWindowVal = int.Parse(recvWindow);
+                    }
+                    if (!TimestampValidator.Validate(timestampVal, recvWindowVal))
+                    {
+                        context.Response.StatusCode = 400;
+                        await context.Response.WriteAsync($"Timestamp for this request is outside of the recvWindow");
+                    }
+                    else
+                    {
+                        await _next.Invoke(context);
+                    }
+                }
             }
             finally
             {

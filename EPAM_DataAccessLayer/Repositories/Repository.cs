@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using EPAM_DataAccessLayer.EF;
 using EPAM_DataAccessLayer.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace EPAM_DataAccessLayer.Repositories
 {
@@ -24,8 +25,14 @@ namespace EPAM_DataAccessLayer.Repositories
 
         public IQueryable<TEntity> GetAll()
         {
-            
             return _entities.AsQueryable();
+        }
+
+        public IQueryable<TEntity> GetAll(int limit, int offset)
+        {
+            return _entities.AsQueryable()
+                    .Skip(offset)
+                    .Take(limit);
         }
 
         public TEntity GetById(Guid id)
@@ -88,6 +95,16 @@ namespace EPAM_DataAccessLayer.Repositories
             return _entities.FromSqlRaw(sql, parameters);
         }
 
+        public bool Any(Expression<Func<TEntity, bool>> predicate)
+        {
+            return _entities.Any(predicate);
+        }
+
+        public async Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        {
+            return await _entities.AnyAsync(predicate);
+        }
+
         public int SaveChanges()
         {
             return _context.SaveChanges();
@@ -97,5 +114,6 @@ namespace EPAM_DataAccessLayer.Repositories
         {
            return await _context.SaveChangesAsync(cancellationToken);
         }
+
     }
 }

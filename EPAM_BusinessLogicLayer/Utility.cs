@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
-using EPAM_BusinessLogicLayer.DTO;
+using System.Threading;
+using System.Threading.Tasks;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_DataAccessLayer.Entities;
 
@@ -30,6 +33,13 @@ namespace EPAM_BusinessLogicLayer
         public static long DateTimeToUnixTimestamp(DateTime dateTime)
         {
             return (long)dateTime.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
+        }
+
+        public static Task SendStringToWebsocket(WebSocket ws, string data, CancellationToken cancellation)
+        {
+            var encoded = Encoding.UTF8.GetBytes(data);
+            var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
+            return ws.SendAsync(buffer, WebSocketMessageType.Text, true, cancellation);
         }
     }
 }

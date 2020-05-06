@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>8.0</LangVersion>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="App_Data\Images\" />
     <Folder Include="Infrastructure\" />
   </ItemGroup>
 

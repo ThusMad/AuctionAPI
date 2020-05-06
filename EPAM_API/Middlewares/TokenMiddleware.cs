@@ -27,6 +27,7 @@ namespace EPAM_API.Middlewares
 
                 var token = context.Request.Cookies[".AspNetCore.Application.Id"];
                 var refreshToken = context.Request.Cookies[".AspNetCore.Application.Cre"];
+
                 if (!string.IsNullOrEmpty(refreshToken))
                 {
                     context.Request.Headers.Add("RefreshToken", refreshToken);
@@ -35,16 +36,35 @@ namespace EPAM_API.Middlewares
                 {
                     context.Request.Headers.Add("Authorization", "Bearer " + token);
                 }
-                context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-                context.Response.Headers.Add("X-Xss-Protection", "1");
-                context.Response.Headers.Add("X-Frame-Options", "DENY");
 
+                if (!context.Response.Headers.ContainsKey("X-Content-Type-Options"))
+                {
+                    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+                }
+                else
+                {
+                    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                }
+
+                if (!context.Response.Headers.ContainsKey("X-Xss-Protection"))
+                {
+                    context.Response.Headers.Add("X-Xss-Protection", "1");
+                }
+                else
+                {
+                    context.Response.Headers["X-Xss-Protection"] = "1";
+                }
+
+                if (!context.Response.Headers.ContainsKey("X-Frame-Options"))
+                {
+                    context.Response.Headers.Add("X-Frame-Options", "DENY");
+                }
+                else
+                {
+                    context.Response.Headers["X-Frame-Options"] = "DENY";
+                }
+                
                 await _next.Invoke(context);
-            }
-            catch (Exception e)
-            {
-                context.Response.StatusCode = 500;
-                await context.Response.WriteAsync(e.Message);
             }
             finally
             {

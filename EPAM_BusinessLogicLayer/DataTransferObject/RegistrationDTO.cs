@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace EPAM_BusinessLogicLayer.DTO
+namespace EPAM_BusinessLogicLayer.DataTransferObject
 {
     public class RegistrationDTO
     {

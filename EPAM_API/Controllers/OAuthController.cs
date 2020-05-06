@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using EPAM_API.Models;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels.TokenStorage.Interfaces;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -58,13 +58,15 @@ namespace EPAM_API.Controllers
                 accessToken,
                 new CookieOptions
                 {
-                    MaxAge = TimeSpan.FromMinutes(60)
+                    MaxAge = TimeSpan.FromDays(40),
+                    Path = "/"
                 });
             HttpContext.Response.Cookies.Append(".AspNetCore.Application.Cre",
                 refreshToken,
                 new CookieOptions
                 {
-                    MaxAge = TimeSpan.FromMinutes(60)
+                    MaxAge = TimeSpan.FromMinutes(40),
+                    Path = "/"
                 });
 
             return Ok();

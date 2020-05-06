@@ -2,23 +2,21 @@
 using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot.Interfaces;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_BusinessLogicLayer.Payloads;
 
 namespace EPAM_BusinessLogicLayer.Services.Interfaces
 {
-    public interface IAuctionService
+    public interface IAuctionService : ISlotProvider
     {
-        AuctionDTO? CreateAuction(AuctionDTO auctionDto, Guid userId, string userRole);
+        Task<AuctionDTO> CreateAuction(AuctionDTO auctionDto, Guid userId, string userRole);
         void DeleteAuction(Guid id);
         void PlaceBid(BidDTO bid);
-        void SubscribeToAuctionBidUpdatesAsync(Guid auctionId, WebSocket ws, TaskCompletionSource<object> socketFinishedTcs);
-        IEnumerable<AuctionDTO> GetAll();
+        IEnumerable<AuctionDTO> GetAll(int? limit, int? offset);
+        AuctionDTO GetById(Guid id);
         LatestPricePayload CurrentPrice(Guid id);
-        AuctionDTO? GetAuction(Guid id);
-        ICollection<AuctionDTO> Find(Func<bool, AuctionDTO> predicate);
-        ICollection<AuctionDTO> GetOngoing();
-        ICollection<AuctionDTO> GetUpcoming();
-        ICollection<AuctionDTO> GetRandom();
+        IEnumerable<AuctionCategoryDto> GetCategories(int? limit, int? offset);
+        Task AddCategoriesAsync(IEnumerable<AuctionCategoryDto> categories);
     }
 }

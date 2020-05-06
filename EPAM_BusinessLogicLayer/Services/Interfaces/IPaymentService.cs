@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 
 namespace EPAM_BusinessLogicLayer.Services.Interfaces
 {

@@ -28,7 +28,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
         public UnitOfWork(AuctionContext context)
         {
             Context = context;
-            SeedRoles();
+            //Task.Run(async () => await SeedRoles());
         }
 
         public AuctionContext Context { get; }
@@ -45,17 +45,21 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             }
         }
 
-        private void SeedRoles()
+        private async Task SeedRoles()
         {
             string[] roles = { "Owner", "Administrator", "Moderator", "User", "Premium", "Plus" };
-            var roleStore = new RoleStore<IdentityRole>(Context);
-            roleStore.AutoSaveChanges = true;
+            var roleStore = new RoleStore<IdentityRole>(Context)
+            {
+                AutoSaveChanges = true
+            };
 
             foreach (var role in roles)
             {
                 if (!Context.Roles.Any(r => r.Name == role))
                 {
-                    roleStore.CreateAsync(new IdentityRole(role));
+                    var nr = new IdentityRole(role);
+                    nr.NormalizedName = role.ToUpper();
+                    await roleStore.CreateAsync(nr);
                 }
             }
         }
@@ -203,6 +207,11 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             return Repository<TEntity>().GetAll();
         }
 
+        public IQueryable<TEntity> GetAll<TEntity>(int limit, int offset) where TEntity : class
+        {
+            return Repository<TEntity>().GetAll(limit, offset);
+        }
+
         public TEntity GetById<TEntity>(Guid id) where TEntity : class
         {
             return Repository<TEntity>().GetById(id);
@@ -216,6 +225,16 @@ namespace EPAM_DataAccessLayer.UnitOfWork
         public IQueryable<TEntity> ExecuteQueryCommand<TEntity>(string sql, params object[] parameters) where TEntity : class
         {
             return Repository<TEntity>().ExecuteQueryCommand(sql, parameters);
+        }
+
+        public bool Any<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class
+        {
+            return Repository<TEntity>().Any(predicate);
+        }
+
+        public async Task<bool> AnyAsync<TEntity>(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) where TEntity : class
+        {
+            return await Repository<TEntity>().AnyAsync(predicate, cancellationToken);
         }
     }
 }

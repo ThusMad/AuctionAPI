@@ -16,6 +16,8 @@ namespace EPAM_DataAccessLayer.Entities
         public string? FirstName { get; set; }
         [MaxLength(50)]
         public string? LastName { get; set; }
+        [MaxLength(256)]
+        public string? About { get; set; }
         public long? RegistrationDate { get; set; }
         public DefaultPaymentMethod DefaultPaymentMethod { get; set; }
         public ICollection<PaymentMethod> PaymentMethods { get; set; }

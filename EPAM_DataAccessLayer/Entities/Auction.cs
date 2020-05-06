@@ -23,8 +23,9 @@ namespace EPAM_DataAccessLayer.Entities
         public long? EndTime { get; set; }
         public AuctionType AuctionType { get; set; }
         public string UserId { get; set; }
-        public ApplicationUser Creator { get; set; }
-        public ICollection<Media> Images { get; set; }
-        public ICollection<Bid> Bids { get; set; }
+        public virtual ApplicationUser? Creator { get; set; }
+        public virtual ICollection<Media>? Images { get; set; }
+        public virtual ICollection<Bid>? Bids { get; set; }
+        public virtual ICollection<AuctionCategory>? Categories { get; set; }
     }
 }

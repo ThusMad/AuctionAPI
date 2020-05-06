@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using EPAM_API.Helpers;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DTO;
+using EPAM_BusinessLogicLayer.DataTransferObject;
 using EPAM_DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -84,7 +84,6 @@ namespace EPAM_API.Services
         {
             var utcNow = DateTime.UtcNow;
 
-            var options = new IdentityOptions();
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id),

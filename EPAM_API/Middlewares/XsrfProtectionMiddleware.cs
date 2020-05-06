@@ -20,12 +20,19 @@ namespace EPAM_API.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
-            context.Response.Cookies.Append(
-                ".AspNetCore.Xsrf",
-                _antiforgery.GetAndStoreTokens(context).RequestToken,
-                new CookieOptions { HttpOnly = false, Secure = true, MaxAge = TimeSpan.FromMinutes(60) });
+            if (context.Request.Path.Value.Contains("/uploads/"))
+            {
+                await _next.Invoke(context);
+            }
+            else
+            {
+                context.Response.Cookies.Append(
+                    ".AspNetCore.Xsrf",
+                    _antiforgery.GetAndStoreTokens(context).RequestToken,
+                    new CookieOptions {HttpOnly = false, Secure = true, MaxAge = TimeSpan.FromMinutes(60)});
 
-            await _next(context);
+                await _next(context);
+            }
         }
     }
 }

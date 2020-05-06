@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.WebSockets;
+using System.Security.Claims;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using EPAM_API.Helpers;
 using EPAM_API.Middlewares;
 using EPAM_API.Services;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.ServiceCollection;
-using EPAM_BusinessLogicLayer.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -19,13 +15,10 @@ using Microsoft.AspNetCore.CookiePolicy;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace EPAM_API
@@ -60,8 +53,9 @@ namespace EPAM_API
             });
 
             services.Configure<AppSettings>(appSettingsSection);
-
             services.AddAntiforgery(options => { options.HeaderName = "x-xsrf-token"; });
+
+            services.AddBll();
 
             services.AddAuthentication(x =>
                 {
@@ -93,21 +87,15 @@ namespace EPAM_API
                             return Task.CompletedTask;
                         }
                     };
-                })
-                .AddCookie(options => {
-                    options.LoginPath = "/oath/token/";
                 });
 
             services.AddAuthorization(auth =>
             {
-                auth.DefaultPolicy = new AuthorizationPolicyBuilder()
-                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
-                    .RequireAuthenticatedUser()
+                auth.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireClaim(ClaimTypes.Role)
                     .Build();
             });
-
             services.AddHttpContextAccessor();
-            services.AddBll();
             services.AddTransient<ITokenService, TokenService>();
             services.AddTransient<IUserProvider, UserProvider>();
         }
@@ -120,9 +108,9 @@ namespace EPAM_API
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseCors(builder => builder
-                .SetIsOriginAllowed(_ => true)
-                .AllowAnyOrigin()
+            app.UseCors(x => x
+                .WithOrigins("http://localhost:4200")
+                .AllowCredentials()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
@@ -133,7 +121,7 @@ namespace EPAM_API
                 Secure = CookieSecurePolicy.Always
             });
 
-            app.UseWebSockets(new WebSocketOptions()
+            app.UseWebSockets(new WebSocketOptions
             {
                 KeepAliveInterval = TimeSpan.FromSeconds(10),
                 ReceiveBufferSize = 4 * 1024
