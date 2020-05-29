@@ -4,7 +4,7 @@ using System.Text;
 
 namespace EPAM_BusinessLogicLayer.Infrastructure
 {
-    public class ItemNotFountException : Exception
+    public class ItemNotFountException : ErrorException
     {
         public string PropertyName { get; private set; }
 

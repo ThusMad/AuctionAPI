@@ -12,6 +12,9 @@ namespace EPAM_DataAccessLayer.Configurations
         public void Configure(EntityTypeBuilder<Bage> builder)
         {
             builder.ToTable("Bages");
+
+            builder.HasIndex(a => a.Id)
+                .IsUnique();
         }
     }
 }

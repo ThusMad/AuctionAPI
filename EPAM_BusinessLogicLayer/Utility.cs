@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.Linq;
 using System.Net.WebSockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_BusinessLogicLayer.DataTransferObject;
-using EPAM_BusinessLogicLayer.Infrastructure;
-using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer
 {

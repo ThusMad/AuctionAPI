@@ -3,7 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -48,7 +49,7 @@ namespace EPAM_API.Controllers
                 return BadRequest();
             }
 
-            var userDto = await _accountService.CreateUserAsync(request, new[] { Roles.User });
+            var userDto = await _accountService.InsertUserAsync(request, new[] { Roles.User });
 
             return Ok(JsonSerializer.Serialize(userDto));
         }
@@ -68,8 +69,18 @@ namespace EPAM_API.Controllers
             return Ok();
         }
 
-        [AllowAnonymous]
+        [Authorize]
         [HttpGet]
+        public async Task<IActionResult> Get()
+        {
+            var id = _userProvider.GetUserId();
+            var user = await _accountService.GetUserByIdAsync<ApplicationUserDto>(id);
+
+            return Ok(JsonSerializer.Serialize(user));
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("view")]
         public async Task<IActionResult> Get(Guid userId)
         {
             var user = await _accountService.GetUserByIdAsync<ApplicationUserPreviewDTO>(userId);
@@ -81,7 +92,7 @@ namespace EPAM_API.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete()
         {
-            await _accountService.DeleteUserAsync(_userProvider.GetUserId(), "no reason");
+            await _accountService.RemoveUserAsync(_userProvider.GetUserId());
 
             return Ok();
         }
@@ -102,17 +113,11 @@ namespace EPAM_API.Controllers
 
         [Authorize(Roles = Roles.User)]
         [HttpGet, Route("getAll")]
-        public IActionResult GetAll(int? limit, int? offset)
+        public async Task<IActionResult> GetAll(int? limit, int? offset)
         {
-            var users = _accountService.GetAllUsers(limit, offset);
-            var applicationUserDtos = users as ApplicationUserDto[] ?? users.ToArray();
+            var users = await _accountService.GetAllUsersAsync(limit, offset);
 
-            if (!applicationUserDtos.Any())
-            {
-                return NotFound("There is no users in provided range");
-            }
-
-            return Ok(JsonSerializer.Serialize(applicationUserDtos));
+            return Ok(JsonSerializer.Serialize(users));
         }
     }
 }

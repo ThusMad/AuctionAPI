@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 using EPAM_DataAccessLayer.Enums;
@@ -9,7 +10,6 @@ namespace EPAM_DataAccessLayer.Entities
     [Table("Auctions")]
     public class Auction
     {
-        [Index(IsUnique = true)]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public string Title { get; set; }
@@ -21,7 +21,7 @@ namespace EPAM_DataAccessLayer.Entities
         public long CreationTime { get; set; }
         public long StartTime { get; set; }
         public long? EndTime { get; set; }
-        public AuctionType AuctionType { get; set; }
+        public AuctionType Type { get; set; }
         public string UserId { get; set; }
         public virtual ApplicationUser? Creator { get; set; }
         public virtual ICollection<Media>? Images { get; set; }

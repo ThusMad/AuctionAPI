@@ -4,8 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using EPAM_API.Models;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.BusinessModels.TokenStorage.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -18,17 +17,17 @@ namespace EPAM_API.Controllers
     [ApiController]
     public class OAuthController : ControllerBase
     {
-        private readonly ITokenService _tokenService;
+        private readonly ITokenProvider _tokenProvider;
         private readonly IAccountService _accountService;
-        private readonly ITokenStorage _tokenStorage;
+        private readonly ITokenService _tokenService;
         private readonly IUserProvider _userProvider;
         private readonly ILogger<OAuthController> _logger;
 
-        public OAuthController(ITokenService tokenService, IAccountService accountService, ITokenStorage tokenStorage, IUserProvider userProvider, ILogger<OAuthController> logger)
+        public OAuthController(ITokenProvider tokenProvider, IAccountService accountService, ITokenService tokenService, IUserProvider userProvider, ILogger<OAuthController> logger)
         {
-            _tokenService = tokenService;
+            _tokenProvider = tokenProvider;
             _accountService = accountService;
-            _tokenStorage = tokenStorage;
+            _tokenService = tokenService;
             _userProvider = userProvider;
             _logger = logger;
         }
@@ -39,20 +38,20 @@ namespace EPAM_API.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> GenerateToken([FromBody]AuthDTO authRequest)
+        public async Task<IActionResult> GenerateToken([FromBody]AuthenticationDTO authenticationRequest)
         {
-            if (!await _accountService.IsValidUsernameAndPasswordCombinationAsync(authRequest.Username,
-                authRequest.Password))
+            if (!await _accountService.IsValidUsernameAndPasswordCombinationAsync(authenticationRequest.Username,
+                authenticationRequest.Password))
                 return BadRequest(new ErrorDetails()
                 {
                     Message = "Username or password is incorrect",
                     StatusCode = 400
                 }.ToString());
 
-            var accessToken = await _tokenService.GenerateAccessToken(authRequest.Username);
-            var refreshToken = _tokenService.GenerateRefreshToken();
+            var accessToken = await _tokenProvider.GenerateAccessToken(authenticationRequest.Username);
+            var refreshToken = _tokenProvider.GenerateRefreshToken();
 
-            await _tokenStorage.UpdateRefreshTokenAsync(authRequest.Username, refreshToken, 15);
+            await _tokenService.UpdateRefreshTokenAsync(authenticationRequest.Username, refreshToken, 15);
 
             HttpContext.Response.Cookies.Append(".AspNetCore.Application.Id",
                 accessToken,
@@ -92,16 +91,16 @@ namespace EPAM_API.Controllers
                 });
             }
 
-            var userId = _tokenService.GetUserIdFromExpiredToken(token);
+            var userId = _tokenProvider.GetUserIdFromExpiredToken(token);
 
-            if (!_tokenStorage.CheckTokenIdentity(userId, refreshToken))
+            if (!_tokenService.CheckTokenIdentity(userId, refreshToken))
             {
                 return BadRequest("Refresh token for current user don't match with stored");
             }
 
-            var newToken = _tokenService.RefreshAccessToken(token, out var newRefreshToken);
+            var newToken = _tokenProvider.RefreshAccessToken(token, out var newRefreshToken);
 
-            await _tokenStorage.UpdateRefreshTokenAsync(userId, newRefreshToken);
+            await _tokenService.UpdateRefreshTokenAsync(userId, newRefreshToken);
 
             HttpContext.Response.Cookies.Append(".AspNetCore.Application.Id",
                 newToken,
@@ -129,7 +128,7 @@ namespace EPAM_API.Controllers
         {
             var userId = _userProvider.GetUserId();
 
-            await _tokenStorage.RemoveTokenFromUserAsync(userId);
+            await _tokenService.RemoveTokenFromUserAsync(userId);
 
             HttpContext.Response.Cookies.Delete(".AspNetCore.Application.Id");
             HttpContext.Response.Cookies.Delete(".AspNetCore.Application.Cre");

@@ -7,8 +7,6 @@ namespace EPAM_DataAccessLayer.Entities
 {
     public class Media
     {
-        [Index(IsUnique = true)]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public string Url { get; set; }
         public Media(string url)

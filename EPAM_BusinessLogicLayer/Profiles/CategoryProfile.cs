@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer.Profiles
@@ -17,7 +17,7 @@ namespace EPAM_BusinessLogicLayer.Profiles
                 .ForMember(x => x.Description, opt => opt.MapFrom(a => a.Category.Description));
 
             CreateMap<AuctionCategoryDto, AuctionCategory>()
-                .ForMember(a => a.Category, opt => opt.MapFrom(a => a));
+                .ForMember(a => a.CategoryId, opt => opt.MapFrom(a => a.Id));
 
             CreateMap<AuctionCategoryDto, Category>();
             CreateMap<Category, AuctionCategoryDto>();

@@ -8,9 +8,11 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_BusinessLogicLayer.Services;
+using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace EPAM_API.Controllers
 {
@@ -18,33 +20,18 @@ namespace EPAM_API.Controllers
     [ApiController]
     public class UploadController : ControllerBase
     {
+        private readonly IUploadService _uploadService;
+
+        public UploadController(IUploadService uploadService)
+        {
+            _uploadService = uploadService;
+        }
+
         [HttpPost, DisableRequestSizeLimit]
         [Authorize]
         public async Task<IActionResult> Upload(List<IFormFile> files)
         {
-            var folderName = Path.Combine("wwwroot", "images");
-            var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
-
-            List<string> paths = new List<string>();
-
-            if (files.Any(f => f.Length == 0))
-            {
-                return BadRequest();
-            }
-
-            foreach (var file in files)
-            {
-                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                var extension = Path.GetExtension(fileName);
-                var hashedName = EPAM_BusinessLogicLayer.Utility.GetHashString(fileName + Request.Query["timestamp"]).ToLower() + extension;
-                var fullPath = Path.Combine(pathToSave, hashedName);
-                var dbPath = "uploads/" + hashedName; //you can add this path to a list and then return all dbPaths to the client if require
-
-                await using var stream = new FileStream(fullPath, FileMode.Create);
-                    await file.CopyToAsync(stream);
-
-                paths.Add(dbPath);
-            }
+            var paths = await _uploadService.UploadAsync(files);
 
             return Ok(JsonSerializer.Serialize(paths));
         }

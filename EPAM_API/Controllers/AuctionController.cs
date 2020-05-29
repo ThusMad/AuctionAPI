@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
-using EPAM_API.Helpers;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.BusinessModels;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
+using EPAM_SocketSlot.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace EPAM_API.Controllers
 {
@@ -21,12 +16,14 @@ namespace EPAM_API.Controllers
     public class AuctionController : ControllerBase
     {
         private readonly IAuctionService _auctionService;
+        private readonly ISlotStorage _slotStorage;
         private readonly IUserProvider _userProvider;
 
-        public AuctionController(IUserProvider userProvider, IAuctionService auctionService)
+        public AuctionController(IUserProvider userProvider, IAuctionService auctionService, ISlotStorage slotStorage)
         {
             _userProvider = userProvider;
             _auctionService = auctionService;
+            _slotStorage = slotStorage;
         }
 
         [Authorize]
@@ -38,7 +35,7 @@ namespace EPAM_API.Controllers
                 return BadRequest();
             }
 
-            var auction = await _auctionService.CreateAuction(request, _userProvider.GetUserId(), _userProvider.GetUserRole());
+            var auction = await _auctionService.InsertAuctionAsync(request, _userProvider.GetUserId(), _userProvider.GetUserRole());
             return Ok(JsonSerializer.Serialize(auction));
 
         }
@@ -47,29 +44,16 @@ namespace EPAM_API.Controllers
         [HttpGet]
         public IActionResult Get(Guid id)
         {
-            var auction = _auctionService.GetById(id);
-            if (auction == null)
-            {
-                return NotFound($"Auction with following id={id} not found");
-            }
+            var auction = _auctionService.GetByIdAsync(id);
 
             return Ok(JsonSerializer.Serialize(auction));
         }
 
         [AllowAnonymous]
         [HttpGet, Route("getAll")]
-        public IActionResult GetAll(string filters, int? limit, int? offset)
+        public async Task<IActionResult> GetAll(string? filters, int? limit, int? offset)
         {
-            var auctions = _auctionService.GetAll(limit, offset);
-
-            return Ok(JsonSerializer.Serialize(auctions));
-        }
-
-        [AllowAnonymous]
-        [HttpGet, Route("getByCategory")]
-        public IActionResult GetByCategory(string category, int? limit, int? offset)
-        {
-            var auctions = _auctionService.GetAll(limit, offset);
+            var auctions = await _auctionService.GetAllAsync(filters, limit, offset);
 
             return Ok(JsonSerializer.Serialize(auctions));
         }
@@ -78,15 +62,15 @@ namespace EPAM_API.Controllers
         [HttpDelete]
         public IActionResult Delete(Guid id)
         {
-            if (User.IsInRole(Role.User) || User.IsInRole(Role.GoldUser) || User.IsInRole(Role.PlusUser))
+            if (User.IsInRole(Roles.User) || User.IsInRole(Roles.Premium) || User.IsInRole(Roles.Plus))
             {
                 // TODO: compare the auction creator with current user
             }
-            if (User.IsInRole(Role.Moderator))
+            if (User.IsInRole(Roles.Moderator))
             {
 
             }
-            if(User.IsInRole(Role.Admin))
+            if(User.IsInRole(Roles.Administrator))
             {
                 // TODO: instant remove
             }
@@ -102,28 +86,10 @@ namespace EPAM_API.Controllers
 
         [Authorize]
         [HttpPost, Route("bid")]
-        public IActionResult PlaceBid([FromBody] BidDTO request)
+        public async Task<IActionResult> PlaceBid(Guid auctionId, decimal price)
         {
-            _auctionService.PlaceBid(request);
-
-            return Ok();
-        }
-
-        [AllowAnonymous]
-        [HttpGet, Route("getCategories")]
-        public IActionResult GetCategories(int? limit, int? offset)
-        {
-            var categories = _auctionService.GetCategories(limit, offset);
-
-            return Ok(JsonSerializer.Serialize(categories));
-        }
-
-        [Authorize]
-        [HttpPost, Route("addCategories")]
-        public async Task<IActionResult> AddCategories([FromBody] IEnumerable<AuctionCategoryDto> categories)
-        {
-            await _auctionService.AddCategoriesAsync(categories);
-
+            var bid = await _auctionService.InsertBidAsync(auctionId, _userProvider.GetUserId(), price);
+            await _slotStorage.NotifySlotsAsync(auctionId, JsonSerializer.Serialize(bid));
             return Ok();
         }
 

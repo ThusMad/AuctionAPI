@@ -15,6 +15,9 @@ namespace EPAM_DataAccessLayer.Configurations
                 .HasOne(n => n.User)
                 .WithMany(n => n.PaymentMethods)
                 .HasForeignKey(n => n.UserId);
+
+            builder.HasIndex(a => a.Id)
+                .IsUnique();
         }
     }
 }

@@ -19,9 +19,11 @@ namespace EPAM_DataAccessLayer.Entities
         [MaxLength(256)]
         public string? About { get; set; }
         public long? RegistrationDate { get; set; }
+        public long Balance { get; set; }
         public DefaultPaymentMethod DefaultPaymentMethod { get; set; }
+        public Media ProfilePicture { get; set; }
         public ICollection<PaymentMethod> PaymentMethods { get; set; }
-        public ICollection<PaymentInfo> PaymentInfos { get; set; }
+        public ICollection<Payment> Payments { get; set; }
         public ICollection<Auction> Auctions { get; set; }
         public ICollection<Bid> Bids { get; set; }
         public ICollection<Bage> Bages { get; set; }
@@ -30,7 +32,7 @@ namespace EPAM_DataAccessLayer.Entities
         {
             Bages = new Collection<Bage>();
             Bids = new Collection<Bid>();
-            PaymentInfos = new Collection<PaymentInfo>();
+            Payments = new Collection<Payment>();
             Auctions = new Collection<Auction>();
             PaymentMethods = new Collection<PaymentMethod>();
         }

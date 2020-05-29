@@ -1,51 +1,57 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Net.WebSockets;
-using System.Text;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using AutoMapper;
-using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot;
-using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+﻿using AutoMapper;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Infrastructure;
-using EPAM_BusinessLogicLayer.Payloads;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.Enums;
-using EPAM_DataAccessLayer.Interfaces;
-using Microsoft.AspNetCore.Identity;
+using EPAM_BusinessLogicLayer.Extensions;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 
 namespace EPAM_BusinessLogicLayer.Services
 {
+    /// <summary>
+    /// This service provides general CRUD operations
+    /// </summary>
     class AuctionService : IAuctionService
     {
+        /// <summary>
+        /// Mapper for mapping entities to DTO's
+        /// </summary>
         private readonly IMapper _mapper;
+        /// <summary>
+        /// Unit of work that provides CRUD operations to database
+        /// </summary>
         private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<ApplicationUser> _userManager;
 
-        private readonly ISocketSlot _socketSlot;
-
-        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        /// <summary>
+        /// Constructor that create <seealso cref="AuctionService"/> instance
+        /// </summary>
+        /// <param name="mapper">Mapper <seealso cref="IMapper"/></param>
+        /// <param name="unitOfWork">Unit of work <seealso cref="IUnitOfWork"/></param>
+        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork)
         {
-            _socketSlot = new SocketSlot();
-
             _unitOfWork = unitOfWork;
-            _userManager = userManager;
             _mapper = mapper;
         }
 
-        public async Task<AuctionDTO> CreateAuction(AuctionDTO auctionDto, Guid userId, string userRole)
+        /// <summary>
+        /// This method inserts <seealso cref="AuctionDTO"/> into database
+        /// </summary>
+        /// <param name="auctionDto">DTO that contains valid auction information</param>
+        /// <param name="userId">Id of user that creates auction</param>
+        /// <param name="userRole">Role of user that creates auction</param>
+        /// <returns>Result of insertion</returns>
+        /// <exception cref="ValidationException">Throws when data provided in <see cref="AuctionDTO"/> not matching</exception>
+        public async Task<AuctionDTO> InsertAuctionAsync(AuctionDTO auctionDto, Guid userId, string userRole)
         {
             if (auctionDto.StartTime < auctionDto.EndTime && auctionDto.AuctionType == AuctionType.Normal)
             {
-                throw new ValidationException("End date can't be ahead of the start date", nameof(auctionDto));
+                throw new ValidationException($"{nameof(auctionDto.EndTime)} can't be ahead of the {nameof(auctionDto.StartTime)}", nameof(auctionDto));
             }
 
             var auction = _mapper.Map<AuctionDTO, Auction>(auctionDto,opt =>
@@ -60,85 +66,122 @@ namespace EPAM_BusinessLogicLayer.Services
             return _mapper.Map<Auction, AuctionDTO>(auction);
         }
 
-        public IEnumerable<AuctionDTO> GetAll(int? limit, int? offset)
+        /// <summary>
+        /// Return collection of <see cref="AuctionDTO"/> selected from database
+        /// </summary>
+        /// <param name="filters">filters that used to select specific entities</param>
+        /// <param name="limit">maximal number of entities to select</param>
+        /// <param name="offset">offset entities to select from specific position</param>
+        /// <returns><seealso cref="IEnumerable{AuctionDTO}"/> of <seealso cref="AuctionDTO"/> that was selected with provided params</returns>
+        public async Task<IEnumerable<AuctionDTO>> GetAllAsync(string? filters, int? limit, int? offset)
         {
             var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
             var offsetVal = offset ?? 0;
 
-            var auctions = _unitOfWork.GetAll<Auction>(limitVal, offsetVal)
+            var auctionQuery = _unitOfWork.GetAll<Auction>(limitVal, offsetVal)
                 .Include(a => a.Images)
                 .Include(a => a.Creator)
                 .Include(a => a.Categories)
-                    .ThenInclude(x => x.Category)
-                .AsEnumerable();
+                .ThenInclude(x => x.Category);
 
-            return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(auctions);
+            if (filters != null)
+            {
+                auctionQuery.ApplyFilters(filters);
+            }
+            
+            return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(await auctionQuery.ToListAsync());
         }
 
-        public AuctionDTO GetById(Guid id)
+        /// <summary>
+        /// Selecting entity with provided id
+        /// </summary>
+        /// <param name="id">id of entity to find</param>
+        /// <returns>Found entity mapped to <seealso cref="AuctionDTO"/></returns>
+        /// <exception cref="ItemNotFountException">throws when entity with provided id not present in database</exception>
+        public async Task<AuctionDTO> GetByIdAsync(Guid id)
         {
-            var auction = _unitOfWork.GetById<Auction>(id);
-
-            if (auction == null)
-            {
-                throw new ItemNotFountException(nameof(auction), "Auction with following id not found");
-            }
+            var auction = await GetAuction(id);
 
             return _mapper.Map<Auction, AuctionDTO>(auction);
         }
 
-        public AuctionDTO Update(AuctionDTO newItem)
-        {
-            return null;
-        }
-
-        public void DeleteAuction(Guid id)
+        public Task AttachMedia(Guid auctionId, string[] media)
         {
             throw new NotImplementedException();
         }
 
-        public void PlaceBid(BidDTO bid)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newItem"></param>
+        /// <returns></returns>
+        public async Task<AuctionDTO> UpdateAuctionAsync(AuctionDTO newItem)
         {
-            _socketSlot.NotifyAllSubscribers(bid.AuctionId, JsonSerializer.Serialize(bid));
+            return null;
         }
 
-        public LatestPricePayload CurrentPrice(Guid id)
+        /// <summary>
+        /// Deletes entity with provided id
+        /// </summary>
+        /// <param name="id">id of entity to be deleted</param>
+        /// <returns></returns>
+        public async Task RemoveAuctionAsync(Guid id)
         {
-            return new LatestPricePayload(10, id);
-        }
+            var auction = await GetAuction(id);
 
-        public IEnumerable<AuctionCategoryDto> GetCategories(int? limit, int? offset)
-        {
-            var categories = _unitOfWork.GetAll<Category>().AsEnumerable();
-            return _mapper.Map<IEnumerable<Category>, IEnumerable<AuctionCategoryDto>>(categories);
-        }
-
-        public async Task AddCategoriesAsync(IEnumerable<AuctionCategoryDto> categories)
-        {
-            var newCategories = new List<AuctionCategoryDto>();
-
-            foreach (var auctionCategoryDto in categories)
+            if (auction.StartTime <= Utility.DateTimeToUnixTimestamp(DateTime.UtcNow))
             {
-                if (!await _unitOfWork.AnyAsync<Category>(c => c.Name == auctionCategoryDto.Name))
-                {
-                    newCategories.Add(auctionCategoryDto);
-                }
+                throw new Exception("Can't delete auction that already in action, for additional information contact administration");
             }
 
-            _mapper.Map<IEnumerable<AuctionCategoryDto>, IEnumerable<Category>>(newCategories)
-                .ToList()
-                .ForEach(async a => await _unitOfWork.InsertAsync(a));
-
+            _unitOfWork.Delete(auction);
             await _unitOfWork.CommitAsync();
         }
 
-        #region ISlotProvider
-
-        public void SubscribeToSlot(Guid id, WebSocket ws, TaskCompletionSource<object> socketFinishedTcs)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionId"></param>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<BidDTO> InsertBidAsync(Guid auctionId, Guid userId, decimal price)
         {
-            _socketSlot.SubscribeToSlot(id, ws, socketFinishedTcs);
+            var auction = await GetAuction(auctionId);
+
+            // TODO: Implement own exception
+            if(auction.StartTime > Utility.DateTimeToUnixTimestamp(DateTime.UtcNow) && auction.EndTime < Utility.DateTimeToUnixTimestamp(DateTime.UtcNow))
+            {
+                throw new Exception("auction already expires or not started yet");
+            }
+
+            // TODO: Check that current price greater then latest bid 
+
+            var bid = await _unitOfWork.InsertAsync(new Bid(auctionId, userId, price));
+            await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<Bid, BidDTO>(bid); 
         }
 
-        #endregion
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        private async Task<Auction> GetAuction(Guid id)
+        {
+            var auctions = await _unitOfWork.GetAll<Auction>()
+                .Where(a => a.Id == id)
+                .Include(a => a.Images)
+                .Include(a => a.Creator)
+                .Include(a => a.Categories)
+                .ThenInclude(x => x.Category).ToArrayAsync();
+
+            if (auctions.Any())
+            {
+                return auctions.First();
+            }
+
+            throw new ItemNotFountException(nameof(auctions), "Auction with following id not found");
+        }
     }
 }

@@ -2,21 +2,59 @@
 using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading.Tasks;
-using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObject;
-using EPAM_BusinessLogicLayer.Payloads;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 
 namespace EPAM_BusinessLogicLayer.Services.Interfaces
 {
-    public interface IAuctionService : ISlotProvider
+    /// <summary>
+    /// 
+    /// </summary>
+    public interface IAuctionService 
     {
-        Task<AuctionDTO> CreateAuction(AuctionDTO auctionDto, Guid userId, string userRole);
-        void DeleteAuction(Guid id);
-        void PlaceBid(BidDTO bid);
-        IEnumerable<AuctionDTO> GetAll(int? limit, int? offset);
-        AuctionDTO GetById(Guid id);
-        LatestPricePayload CurrentPrice(Guid id);
-        IEnumerable<AuctionCategoryDto> GetCategories(int? limit, int? offset);
-        Task AddCategoriesAsync(IEnumerable<AuctionCategoryDto> categories);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionDto"></param>
+        /// <param name="userId"></param>
+        /// <param name="userRole"></param>
+        /// <returns></returns>
+        Task<AuctionDTO> InsertAuctionAsync(AuctionDTO auctionDto, Guid userId, string userRole);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="newItem"></param>
+        /// <returns></returns>
+        Task<AuctionDTO> UpdateAuctionAsync(AuctionDTO newItem);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        Task RemoveAuctionAsync(Guid id);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filters"></param>
+        /// <param name="limit"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        Task<IEnumerable<AuctionDTO>> GetAllAsync(string? filters, int? limit, int? offset);
+        /// <summary>
+        /// Returns instance of auction with following id transformed to <see cref="AuctionDTO"/>
+        /// </summary>
+        /// <param name="id">id of searched auction</param>
+        /// <returns><see cref="AuctionDTO"/> instance</returns>
+        Task<AuctionDTO> GetByIdAsync(Guid id);
+
+        Task AttachMedia(Guid auctionId, string[] media);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionId"></param>
+        /// <param name="userId"></param>
+        /// <param name="bid"></param>
+        /// <returns></returns>
+        Task<BidDTO> InsertBidAsync(Guid auctionId, Guid userId, decimal price);
     }
 }

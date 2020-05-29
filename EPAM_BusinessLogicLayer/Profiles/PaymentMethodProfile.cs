@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer.Profiles
@@ -12,6 +12,9 @@ namespace EPAM_BusinessLogicLayer.Profiles
         public PaymentMethodProfile()
         {
             CreateMap<PaymentMethod, PaymentMethodDTO>();
+            CreateMap<PaymentMethod, DefaultPaymentMethod>()
+                .ForMember(a=> a.UserId, opt => opt.MapFrom(b => b.UserId))
+                .ForMember(a => a.PaymentMethodId, opt => opt.MapFrom(b => b.Id));
             CreateMap<PaymentMethodDTO, PaymentMethod>();
         }
     }

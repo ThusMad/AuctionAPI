@@ -8,8 +8,6 @@ namespace EPAM_DataAccessLayer.Entities
 {
     public class RefreshToken
     {
-        [Index(IsUnique = true)]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public string? Token { get; set; }
         public long TokenExpiration { get; set; }

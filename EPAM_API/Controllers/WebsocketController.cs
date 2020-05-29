@@ -6,11 +6,12 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_BusinessLogicLayer.BusinessModels.SocketSlot.Interfaces;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
+using EPAM_SocketSlot.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CSharp.RuntimeBinder;
+using Microsoft.Extensions.Logging;
 
 namespace EPAM_API.Controllers
 {
@@ -18,13 +19,14 @@ namespace EPAM_API.Controllers
     [Controller]
     public class WebsocketController : ControllerBase
     {
-        private readonly ISlotProvider _auctionService;
+        private ISlotStorage slotStorage;
+        private ISlotFactory slotFactory;
 
-        public WebsocketController(IAuctionService auctionService)
+        public WebsocketController(ISlotFactory slotFactory, ISlotStorage slotStorage)
         {
-            _auctionService = auctionService;
+            this.slotFactory = slotFactory;
+            this.slotStorage = slotStorage;
         }
-
 
         public async Task<IActionResult> Get(string streamName)
         {
@@ -32,10 +34,20 @@ namespace EPAM_API.Controllers
             {
                 var webSocket = await this.HttpContext.WebSockets.AcceptWebSocketAsync();
                 var socketFinishedTcs = new TaskCompletionSource<object>();
-
                 var streamParams = streamName.Split('@', StringSplitOptions.RemoveEmptyEntries);
 
-                _auctionService.SubscribeToSlot(Guid.Parse(streamParams[0]), webSocket, socketFinishedTcs);
+                var slot = slotStorage.GetSlot(Guid.Parse(streamParams[0]));
+
+                if (slot != null)
+                {
+                    slot.AddSubscriber(webSocket, socketFinishedTcs);
+                }
+                else
+                {
+                    var newSlot = slotFactory.CreateInstance();
+                    await slotStorage.AddSlot(Guid.Parse(streamParams[0]), newSlot);
+                    newSlot.AddSubscriber(webSocket, socketFinishedTcs);
+                }
 
                 await socketFinishedTcs.Task.ConfigureAwait(false);
 

@@ -1,37 +1,43 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Data.Entity;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Data.Entity.Infrastructure;
-using System.Data.Entity.Validation;
+
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_DataAccessLayer.EF;
+using EPAM_DataAccessLayer.Contexts;
 using EPAM_DataAccessLayer.Entities;
-using EPAM_DataAccessLayer.Interfaces;
+using EPAM_DataAccessLayer.Infrastructure;
 using EPAM_DataAccessLayer.Repositories;
+using EPAM_DataAccessLayer.Repositories.Interfaces;
+using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 
 namespace EPAM_DataAccessLayer.UnitOfWork
 {
+    ///<inheritdoc cref="IUnitOfWork"/>
     public class UnitOfWork: IUnitOfWork
     {
+        /// <summary>
+        /// Collection of TEntity/<see cref="IRepository{TEntity}"/> pairs
+        /// </summary>
         private Hashtable _repositories;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UnitOfWork"/> class.
+        /// </summary>
+        /// <param name="context"></param>
         public UnitOfWork(AuctionContext context)
         {
             Context = context;
             //Task.Run(async () => await SeedRoles());
         }
 
-        public AuctionContext Context { get; }
+        public IdentityDbContext<ApplicationUser> Context { get; }
 
         public void Dispose()
         {
@@ -64,23 +70,27 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             }
         }
 
-        private static string FormatError(DbEntityValidationException ex)
+        /// <summary>
+        /// Method that formats exceptions
+        /// </summary>
+        /// <param name="ex"><seealso cref="ValidationException"/> exceptions</param>
+        /// <returns>String formatted exception</returns>
+        private static string FormatError(ValidationException ex)
         {
-            var build = new StringBuilder();
+            var errorBuilder = new StringBuilder();
+
             foreach (var error in ex.EntityValidationErrors)
             {
-                var errorBuilder = new StringBuilder();
-
-                foreach (var validationError in error.ValidationErrors)
-                {
-                    errorBuilder.AppendLine(string.Format("Property '{0}' errored:{1}", validationError.PropertyName, validationError.ErrorMessage));
-                }
-
-                build.AppendLine(errorBuilder.ToString());
+                errorBuilder.AppendLine(string.Format($"Property '{error.MemberNames}' errored:{error.ErrorMessage}"));
             }
-            return build.ToString();
+            return errorBuilder.ToString();
         }
 
+        /// <summary>
+        /// Function that provide direct access to <seealso cref="IRepository{TEntity}"/>
+        /// </summary>
+        /// <typeparam name="TEntity">Entity stored in Db</typeparam>
+        /// <returns>Instance of <seealso cref="IRepository{TEntity}"/></returns>
         public IRepository<TEntity> Repository<TEntity>() where TEntity : class
         {
             if (_repositories == null)
@@ -123,7 +133,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
                 Context.SaveChanges();
                 transaction?.Commit();
             }
-            catch (DbEntityValidationException ex)
+            catch (ValidationException ex)
             {
                 var errors = FormatError(ex);
                 throw new Exception(errors, ex);
@@ -145,7 +155,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
                     await transaction.CommitAsync(cancellationToken);
                 }
             }
-            catch (DbEntityValidationException ex)
+            catch (ValidationException ex)
             {
                 var errors = FormatError(ex);
                 throw new Exception(errors, ex);
@@ -189,15 +199,15 @@ namespace EPAM_DataAccessLayer.UnitOfWork
 
         public TEntity Delete<TEntity>(TEntity entity) where TEntity : class
         {
-            return Repository<TEntity>().Delete(entity);
+            return Repository<TEntity>().Remove(entity);
         }
 
         public void DeleteRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
         {
-            Repository<TEntity>().DeleteRange(entities);
+            Repository<TEntity>().RemoveRange(entities);
         }
 
-        public IEnumerable<TEntity> Find<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class
+        public IQueryable<TEntity> Find<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class
         {
             return Repository<TEntity>().Find(predicate);
         }

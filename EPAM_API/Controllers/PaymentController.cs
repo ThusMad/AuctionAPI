@@ -7,9 +7,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Helpers;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
-using EPAM_DataAccessLayer.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -68,83 +67,52 @@ namespace EPAM_API.Controllers
 
         [Authorize]
         [HttpPost, Route("methods/create")]
-        public IActionResult CreatePaymentMethod([FromBody]PaymentMethodDTO request)
+        public async Task<IActionResult> CreatePaymentMethod([FromBody]PaymentMethodDTO request)
         {
-            _paymentService.AddPaymentMethod(_userProvider.GetUserId(), request);
+            await _paymentService.InsertPaymentMethodAsync(_userProvider.GetUserId(), request);
 
             return Ok(JsonSerializer.Serialize(request));
         }
 
         [Authorize]
         [HttpDelete, Route("methods/delete")]
-        public IActionResult DeletedPaymentMethod(int? paymentMethodId)
+        public async Task<IActionResult> DeletedPaymentMethod(Guid id)
         {
-            if (paymentMethodId == null)
-            {
-                return BadRequest($"Malformed request, {nameof(paymentMethodId)} must be set");
-            }
+            await _paymentService.DeletePaymentMethodAsync(id, _userProvider.GetUserId());
 
-            return Ok("record has successfully deleted");
+            return Ok();
         }
 
         [Authorize]
-        [HttpGet, Route("methods/setDefault")]
-        public IActionResult GetDefaultPaymentMethods(Guid id)
+        [HttpPost, Route("methods/setDefault")]
+        public async Task<IActionResult> SetDefaultPaymentMethods(Guid methodId)
         {
-            try
-            {
-                return Ok(JsonSerializer.Serialize(_paymentService.GetPaymentMethods(_userProvider.GetUserId())));
-
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            await _paymentService.SetDefaultPaymentMethodAsync(_userProvider.GetUserId(), methodId);
+            return Ok();
         }
 
         [Authorize]
         [HttpGet, Route("methods/get")]
-        public IActionResult GetPaymentMethods(Guid id)
+        public async Task<IActionResult> GetPaymentMethods(Guid id)
         {
-            try
-            {
-                return Ok(JsonSerializer.Serialize(_paymentService.GetPaymentMethods(_userProvider.GetUserId())));
-
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var method = await _paymentService.GetPaymentMethodAsync(id, _userProvider.GetUserId());
+            return Ok(JsonSerializer.Serialize(method));
         }
 
         [Authorize]
         [HttpGet, Route("methods/getDefault")]
-        public IActionResult GetDefaultPaymentMethods()
+        public async Task<IActionResult> GetDefaultPaymentMethods()
         {
-            try
-            {
-                return Ok(JsonSerializer.Serialize(_paymentService.GetPaymentMethods(_userProvider.GetUserId())));
-
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var method = await _paymentService.GetDefaultPaymentMethodAsync(_userProvider.GetUserId());
+            return Ok(JsonSerializer.Serialize(method));
         }
 
         [Authorize]
         [HttpGet, Route("methods/getAll")]
-        public IActionResult GetPaymentMethods(int? limit, int? offset)
+        public async Task<IActionResult> GetPaymentMethods(int? limit, int? offset)
         {
-            try
-            {
-                return Ok(JsonSerializer.Serialize(_paymentService.GetPaymentMethods(_userProvider.GetUserId())));
-
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            var methods = await _paymentService.GetPaymentMethodsAsync(_userProvider.GetUserId());
+            return Ok(JsonSerializer.Serialize(methods));
         }
 
         #endregion

@@ -36,17 +36,16 @@ namespace EPAM_API.Middlewares
 
         private static Task HandleExceptionAsync(HttpContext context, Exception ex)
         {
-            var code = HttpStatusCode.InternalServerError;
+            var code = (int)HttpStatusCode.InternalServerError;
 
-            if (ex is ItemNotFountException) code = HttpStatusCode.NotFound;
-            else if (ex is UserException) code = HttpStatusCode.BadRequest;
-            else if (ex is RefreshTokenExpireException) code = HttpStatusCode.Unauthorized;
+            if (ex is ErrorException errorException) code = errorException.ErrorCode;
+            else if (ex is RefreshTokenExpireException) code = (int)HttpStatusCode.Unauthorized;
 
             context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)code;
+            context.Response.StatusCode = code;
             return context.Response.WriteAsync(new ErrorDetails()
             {
-                StatusCode = (int)code,
+                StatusCode = code,
                 Message = ex.Message
             }.ToString());
         }

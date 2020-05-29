@@ -7,8 +7,6 @@ namespace EPAM_DataAccessLayer.Entities
 {
     public class Category
     {
-        [Index(IsUnique = true)]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }

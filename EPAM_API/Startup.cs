@@ -7,7 +7,7 @@ using EPAM_API.Helpers;
 using EPAM_API.Middlewares;
 using EPAM_API.Services;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.ServiceCollection;
+using EPAM_BusinessLogicLayer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -96,7 +96,7 @@ namespace EPAM_API
                     .Build();
             });
             services.AddHttpContextAccessor();
-            services.AddTransient<ITokenService, TokenService>();
+            services.AddTransient<ITokenProvider, TokenProvider>();
             services.AddTransient<IUserProvider, UserProvider>();
         }
 

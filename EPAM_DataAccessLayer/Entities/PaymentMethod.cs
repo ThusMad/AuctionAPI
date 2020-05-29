@@ -7,8 +7,6 @@ namespace EPAM_DataAccessLayer.Entities
 {
     public class PaymentMethod
     {
-        [Index(IsUnique = true)]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
         public string CardNumber { get; set; }
         public string Cardholder { get; set; }

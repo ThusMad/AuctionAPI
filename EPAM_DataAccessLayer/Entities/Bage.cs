@@ -6,9 +6,7 @@ using System.Text;
 namespace EPAM_DataAccessLayer.Entities
 {
     public class Bage
-    {
-        [Index(IsUnique = true)]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    { 
         public Guid Id { get; set; }
         public string IconUrl { get; set; }
         public string BackgroundColor { get; set; }

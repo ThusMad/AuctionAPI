@@ -4,10 +4,10 @@ using System.Text;
 
 namespace EPAM_BusinessLogicLayer.Infrastructure
 {
-    public class ValidationException : Exception
+    public class ValidationException : ErrorException
     {
         public string Property { get; protected set; }
-        public ValidationException(string message, string prop) : base(message)
+        public ValidationException(string msg, string prop) : base(msg)
         {
             Property = prop;
         }

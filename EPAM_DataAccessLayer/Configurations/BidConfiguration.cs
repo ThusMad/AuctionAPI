@@ -15,6 +15,13 @@ namespace EPAM_DataAccessLayer.Configurations
                 .HasOne(b => b.Auction)
                 .WithMany(a => a.Bids)
                 .HasForeignKey(b => b.AuctionId);
+
+            builder.HasOne(b => b.User)
+                .WithMany(a => a.Bids)
+                .HasForeignKey(b => b.PlacerId);
+
+            builder.HasIndex(a => a.Id)
+                .IsUnique();
         }
     }
 }

@@ -1,20 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Entities;
-using EPAM_DataAccessLayer.Enums;
-using EPAM_DataAccessLayer.Interfaces;
-using EPAM_DataAccessLayer.Repositories;
-using Microsoft.AspNetCore.Http.Authentication;
+using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
+using EPAM_BusinessLogicLayer.Extensions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace EPAM_BusinessLogicLayer.Services
 {
@@ -42,13 +38,14 @@ namespace EPAM_BusinessLogicLayer.Services
         /// <param name="roles">List of roles for created user</param>
         /// <returns>DTO model for created user</returns>
         /// <exception cref="UserException">Thrown when user already registered or password is incorrect for details <seealso cref="UserException.Message"/> </exception>
-        public async Task<ApplicationUserDto> CreateUserAsync(RegistrationDTO registrationDto, IEnumerable<string> roles)
+        public async Task<ApplicationUserDto> InsertUserAsync(RegistrationDTO registrationDto, IEnumerable<string> roles)
         {
-            if (await _userManager.FindByNameAsync(registrationDto.Username) != null)
+            if (await GetUserByUsernameAsync(registrationDto.Username) != null)
             {
-                throw new UserException("User with following username already exists");
+                throw new UserException(200, "User with following username already exists");
             }
 
+            // TODO: use mapper
             var user = new ApplicationUser
             {
                 Email = registrationDto.Email,
@@ -86,13 +83,20 @@ namespace EPAM_BusinessLogicLayer.Services
         ///<exception cref="ItemNotFountException">Throws when a database doesn't contain user with the provided username</exception>
         public async Task<bool> IsValidUsernameAndPasswordCombinationAsync(string username, string password)
         {
-            var user = await _userManager.FindByNameAsync(username);
-            if (user == null)
-            {
-                throw new ItemNotFountException("User", "User with following username not found");
-            }
+            var user = await GetUserByUsernameAsync(username);
 
             return await _userManager.CheckPasswordAsync(user, password);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="media"></param>
+        /// <returns></returns>
+        public Task AttachProfilePicture(Guid userId, string media)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -110,12 +114,7 @@ namespace EPAM_BusinessLogicLayer.Services
                 throw new ArgumentNullException(nameof(id), "id was null");
             }
 
-            var user = await _userManager.FindByIdAsync(id.ToString());
-
-            if (user == null)
-            {
-                throw new ItemNotFountException("User", $"User with following {nameof(id)} not found");
-            }
+            var user = await GetUserByIdAsync(id);
 
             return _mapper.Map<ApplicationUser, TUserDto> (user);
         }
@@ -127,43 +126,52 @@ namespace EPAM_BusinessLogicLayer.Services
         /// <param name="limit">limit returned <seealso cref="ApplicationUserDto"/> entities, must be less equal 20</param>
         /// <param name="offset">offset searched <seealso cref="ApplicationUserDto"/> entities</param>
         /// <returns>Enumerable collection of <seealso cref="ApplicationUserDto"/></returns>
-        public IEnumerable<ApplicationUserDto> GetAllUsers(int? limit, int? offset)
+        public async Task<IEnumerable<ApplicationUserDto>> GetAllUsersAsync(int? limit, int? offset)
         {
             var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
             var offsetVal = offset ?? 0;
 
-            var users = _unitOfWork.GetAll<ApplicationUser>(limitVal, offsetVal).AsEnumerable();
+            var users = await _unitOfWork.GetAll<ApplicationUser>(limitVal, offsetVal).ToListAsync();
 
-            var mapper = new MapperConfiguration(cfg => cfg.CreateMap<ApplicationUser, ApplicationUserDto>())
-                .CreateMapper();
-            return mapper.Map<IEnumerable<ApplicationUser>, List<ApplicationUserDto>>(users);
+            return _mapper.Map<IEnumerable<ApplicationUser>, List<ApplicationUserDto>>(users);
         }
 
         public async Task UpdateUserAsync(Guid id, ApplicationUserPatchModel applicationUserDto)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await GetUserByIdAsync(id);
 
-            if (applicationUserDto.FirstName != null)
-            {
-                user.FirstName = applicationUserDto.FirstName;
-            }
-            if (applicationUserDto.LastName != null)
-            {
-                user.LastName = applicationUserDto.LastName;
-            }
-            if (applicationUserDto.About != null)
-            {
-                user.About = applicationUserDto.About;
-            }
-            
-            await _userManager.UpdateAsync(user);
+            await _userManager.UpdateAsync(_mapper.Map(applicationUserDto, user));
         }
 
-        public async Task DeleteUserAsync(Guid id, string reason)
+        public async Task RemoveUserAsync(Guid id)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
 
             await _userManager.DeleteAsync(user);
+        }
+
+        private async Task<ApplicationUser> GetUserByIdAsync(Guid id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+
+            if (user == null)
+            {
+                throw new ItemNotFountException("User", $"User with following {nameof(id)} not found");
+            }
+
+            return user;
+        }
+
+        private async Task<ApplicationUser> GetUserByUsernameAsync(string username)
+        {
+            var user = await _userManager.FindByNameAsync(username);
+
+            if (user == null)
+            {
+                throw new ItemNotFountException("User", $"User with following {nameof(username)} not found");
+            }
+
+            return user;
         }
     }
 }

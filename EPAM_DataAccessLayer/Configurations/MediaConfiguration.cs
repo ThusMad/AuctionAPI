@@ -12,6 +12,9 @@ namespace EPAM_DataAccessLayer.Configurations
         public void Configure(EntityTypeBuilder<Media> builder)
         {
             builder.ToTable("Media");
+
+            builder.HasIndex(a => a.Id)
+                .IsUnique();
         }
     }
 }

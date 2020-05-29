@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_DataAccessLayer.EF;
-using EPAM_DataAccessLayer.Interfaces;
+using EPAM_DataAccessLayer.Contexts;
+using EPAM_DataAccessLayer.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 
@@ -45,7 +44,7 @@ namespace EPAM_DataAccessLayer.Repositories
             return await _entities.FindAsync(id);
         }
 
-        public IEnumerable<TEntity> Find(Expression<Func<TEntity, bool>> predicate)
+        public IQueryable<TEntity> Find(Expression<Func<TEntity, bool>> predicate)
         {
             return _entities.Where(predicate);
         }
@@ -80,12 +79,12 @@ namespace EPAM_DataAccessLayer.Repositories
             await _entities.AddRangeAsync(entities, cancellationToken);
         }
 
-        public TEntity Delete(TEntity entity)
+        public TEntity Remove(TEntity entity)
         {
             return _entities.Remove(entity).Entity;
         }
 
-        public void DeleteRange(IEnumerable<TEntity> entities)
+        public void RemoveRange(IEnumerable<TEntity> entities)
         {
             _entities.RemoveRange(entities);
         }

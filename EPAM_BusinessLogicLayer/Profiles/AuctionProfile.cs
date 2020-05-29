@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer.Profiles
@@ -18,6 +18,7 @@ namespace EPAM_BusinessLogicLayer.Profiles
 
             CreateMap<AuctionDTO, Auction>()
                 .ForMember(d => d.UserId, o => o.Ignore())
+                .ForMember(d => d.Creator, o => o.Ignore())
                 .ForMember(d => d.Bids, o => o.Ignore())
                 .ForMember(x => x.Categories, opt => opt.MapFrom(a => a.Categories))
                 .AfterMap(ModifyCategories);

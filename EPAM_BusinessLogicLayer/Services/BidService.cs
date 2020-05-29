@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using AutoMapper;
-using EPAM_BusinessLogicLayer.DataTransferObject;
+using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
-using EPAM_DataAccessLayer.Interfaces;
+using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 
 namespace EPAM_BusinessLogicLayer.Services
 {

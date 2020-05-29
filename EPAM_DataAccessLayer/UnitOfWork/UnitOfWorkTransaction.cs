@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_DataAccessLayer.EF;
-using EPAM_DataAccessLayer.Interfaces;
+using EPAM_DataAccessLayer.Entities;
+using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EPAM_DataAccessLayer.UnitOfWork
@@ -17,14 +16,14 @@ namespace EPAM_DataAccessLayer.UnitOfWork
         private readonly IUnitOfWork _unitOfWork;
         private readonly IDbContextTransaction _transaction;
 
-        public UnitOfWorkTransaction(UnitOfWork unitOfWork)
+        public UnitOfWorkTransaction(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
             _transaction = unitOfWork.Context.Database.BeginTransaction();
             Context = unitOfWork.Context;
         }
 
-        public AuctionContext Context { get; set; }
+        public IdentityDbContext<ApplicationUser> Context { get; set; }
 
         public void Dispose()
         {
