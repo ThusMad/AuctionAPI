@@ -100,14 +100,24 @@ namespace EPAM_BusinessLogicLayer.Services
         /// <exception cref="ItemNotFountException">throws when entity with provided id not present in database</exception>
         public async Task<AuctionDTO> GetByIdAsync(Guid id)
         {
-            var auction = await GetAuction(id);
+            var auction = await GetAuction(id).ConfigureAwait(false);
 
             return _mapper.Map<Auction, AuctionDTO>(auction);
         }
 
-        public Task AttachMedia(Guid auctionId, string[] media)
+        public async Task AttachMedia(Guid auctionId, Guid userId, string[] mediaUrls)
         {
-            throw new NotImplementedException();
+            var auction = await GetAuction(auctionId);
+
+            if (auction.UserId != userId.ToString())
+            {
+                throw new Infrastructure.AccessViolationException("Unable to update item created by another user");
+            }
+
+            auction.Images = mediaUrls.Select(mediaUrl => new Media(mediaUrl)).ToList();
+
+            _unitOfWork.Update(auction);
+            await _unitOfWork.CommitAsync();
         }
 
         /// <summary>
@@ -117,6 +127,7 @@ namespace EPAM_BusinessLogicLayer.Services
         /// <returns></returns>
         public async Task<AuctionDTO> UpdateAuctionAsync(AuctionDTO newItem)
         {
+            await Task.Delay(-1);
             return null;
         }
 
@@ -143,10 +154,11 @@ namespace EPAM_BusinessLogicLayer.Services
         /// </summary>
         /// <param name="auctionId"></param>
         /// <param name="userId"></param>
+        /// <param name="price"></param>
         /// <returns></returns>
         public async Task<BidDTO> InsertBidAsync(Guid auctionId, Guid userId, decimal price)
         {
-            var auction = await GetAuction(auctionId);
+            var auction = await GetAuction(auctionId).ConfigureAwait(false);
 
             // TODO: Implement own exception
             if(auction.StartTime > Utility.DateTimeToUnixTimestamp(DateTime.UtcNow) && auction.EndTime < Utility.DateTimeToUnixTimestamp(DateTime.UtcNow))
@@ -154,7 +166,26 @@ namespace EPAM_BusinessLogicLayer.Services
                 throw new Exception("auction already expires or not started yet");
             }
 
-            // TODO: Check that current price greater then latest bid 
+            var latestBids = await _unitOfWork.Find<Bid>(b => b.AuctionId == auctionId)
+                                            .OrderBy(a => a.Time)
+                                            .Take(1)
+                                            .ToListAsync();
+
+            if (latestBids.Any())
+            {
+                var latestBid = latestBids.First();
+                if (latestBid.Price > price && Math.Abs(latestBid.Price - price) < auction.PriceStep)
+                {
+                    throw new UserException(200, "price can't be less then latest price with price step");
+                }
+            }
+            else
+            {
+                if (Math.Abs(auction.StartPrice - price) < auction.PriceStep)
+                {
+                    throw new UserException(200, "price can't be less then start price with price step");
+                }
+            }
 
             var bid = await _unitOfWork.InsertAsync(new Bid(auctionId, userId, price));
             await _unitOfWork.CommitAsync();

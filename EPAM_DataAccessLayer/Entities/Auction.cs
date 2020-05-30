@@ -1,9 +1,7 @@
-﻿using System;
+﻿using EPAM_DataAccessLayer.Enums;
+using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using EPAM_DataAccessLayer.Enums;
 
 namespace EPAM_DataAccessLayer.Entities
 {

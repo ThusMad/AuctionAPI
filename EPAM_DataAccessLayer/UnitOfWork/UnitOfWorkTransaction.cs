@@ -1,13 +1,13 @@
-﻿using System;
+﻿using EPAM_DataAccessLayer.Entities;
+using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_DataAccessLayer.Entities;
-using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EPAM_DataAccessLayer.UnitOfWork
 {
@@ -79,7 +79,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
         {
             _unitOfWork.UpdateRange(entities);
         }
-       
+
         public TEntity Delete<TEntity>(TEntity entity) where TEntity : class
         {
             return _unitOfWork.Delete(entity);
@@ -90,7 +90,8 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             _unitOfWork.DeleteRange(entities);
         }
 
-        public IEnumerable<TEntity> Find<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class { 
+        public IEnumerable<TEntity> Find<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class
+        {
             return _unitOfWork.Find(predicate);
         }
 

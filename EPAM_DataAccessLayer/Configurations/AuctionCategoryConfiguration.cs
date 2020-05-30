@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using EPAM_DataAccessLayer.Entities;
+﻿using EPAM_DataAccessLayer.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -12,7 +9,8 @@ namespace EPAM_DataAccessLayer.Configurations
         public void Configure(EntityTypeBuilder<AuctionCategory> builder)
         {
             builder.ToTable("AuctionCategories")
-                .HasKey(bc => new {
+                .HasKey(bc => new
+                {
                     bc.AuctionId,
                     bc.CategoryId
                 });

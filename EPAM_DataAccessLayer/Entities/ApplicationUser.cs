@@ -1,11 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using EPAM_DataAccessLayer.Enums;
-using Microsoft.AspNetCore.Identity;
 
 namespace EPAM_DataAccessLayer.Entities
 {
@@ -19,7 +16,7 @@ namespace EPAM_DataAccessLayer.Entities
         [MaxLength(256)]
         public string? About { get; set; }
         public long? RegistrationDate { get; set; }
-        public long Balance { get; set; }
+        public Balance Balance { get; set; }
         public DefaultPaymentMethod DefaultPaymentMethod { get; set; }
         public Media ProfilePicture { get; set; }
         public ICollection<PaymentMethod> PaymentMethods { get; set; }

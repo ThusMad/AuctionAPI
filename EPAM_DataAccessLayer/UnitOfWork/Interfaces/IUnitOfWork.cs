@@ -1,14 +1,13 @@
-﻿using System;
+﻿using EPAM_DataAccessLayer.Entities;
+using EPAM_DataAccessLayer.Repositories.Interfaces;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_DataAccessLayer.Contexts;
-using EPAM_DataAccessLayer.Entities;
-using EPAM_DataAccessLayer.Repositories.Interfaces;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace EPAM_DataAccessLayer.UnitOfWork.Interfaces
 {
@@ -74,7 +73,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork.Interfaces
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="entities">Collection of <seealso cref="TEntity"/></param>
-        void InsertRange<TEntity>( IEnumerable<TEntity> entities) where TEntity : class;
+        void InsertRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class;
         /// <summary>
         /// Inserts entity to <see cref="IRepository{TEntity}"/> asynchronous
         /// </summary>

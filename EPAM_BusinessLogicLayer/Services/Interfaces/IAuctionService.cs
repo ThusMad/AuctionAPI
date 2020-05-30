@@ -46,7 +46,7 @@ namespace EPAM_BusinessLogicLayer.Services.Interfaces
         /// <returns><see cref="AuctionDTO"/> instance</returns>
         Task<AuctionDTO> GetByIdAsync(Guid id);
 
-        Task AttachMedia(Guid auctionId, string[] media);
+        Task AttachMedia(Guid auctionId, Guid userId, string[] mediaUrls);
 
         /// <summary>
         /// 

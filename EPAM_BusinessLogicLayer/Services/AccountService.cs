@@ -40,7 +40,7 @@ namespace EPAM_BusinessLogicLayer.Services
         /// <exception cref="UserException">Thrown when user already registered or password is incorrect for details <seealso cref="UserException.Message"/> </exception>
         public async Task<ApplicationUserDto> InsertUserAsync(RegistrationDTO registrationDto, IEnumerable<string> roles)
         {
-            if (await GetUserByUsernameAsync(registrationDto.Username) != null)
+            if (await GetUserByUsernameAsync(registrationDto.Username).ConfigureAwait(false) != null)
             {
                 throw new UserException(200, "User with following username already exists");
             }
@@ -81,9 +81,14 @@ namespace EPAM_BusinessLogicLayer.Services
         /// <param name="password">User username</param>
         /// <returns>Result of comparing password stored in a database with provided</returns>
         ///<exception cref="ItemNotFountException">Throws when a database doesn't contain user with the provided username</exception>
-        public async Task<bool> IsValidUsernameAndPasswordCombinationAsync(string username, string password)
+        public async Task<bool> IsValidUsernameAndPasswordCombinationAsync(string? username, string? password)
         {
-            var user = await GetUserByUsernameAsync(username);
+            if (username == null || password == null)
+            {
+                throw new ArgumentNullException("password or username is null");
+            }
+
+            var user = await GetUserByUsernameAsync(username).ConfigureAwait(false);
 
             return await _userManager.CheckPasswordAsync(user, password);
         }
@@ -138,7 +143,7 @@ namespace EPAM_BusinessLogicLayer.Services
 
         public async Task UpdateUserAsync(Guid id, ApplicationUserPatchModel applicationUserDto)
         {
-            var user = await GetUserByIdAsync(id);
+            var user = await GetUserByIdAsync(id).ConfigureAwait(false);
 
             await _userManager.UpdateAsync(_mapper.Map(applicationUserDto, user));
         }

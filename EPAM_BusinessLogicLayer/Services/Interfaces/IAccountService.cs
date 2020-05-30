@@ -25,7 +25,7 @@ namespace EPAM_BusinessLogicLayer.Services.Interfaces
         Task<IEnumerable<ApplicationUserDto>> GetAllUsersAsync(int? limit, int? offset);
         Task UpdateUserAsync(Guid id, ApplicationUserPatchModel applicationUserDto);
         Task RemoveUserAsync(Guid id);
-        Task<bool> IsValidUsernameAndPasswordCombinationAsync(string username, string password);
+        Task<bool> IsValidUsernameAndPasswordCombinationAsync(string? username, string? password);
         Task AttachProfilePicture(Guid userId, string media);
     }
 }

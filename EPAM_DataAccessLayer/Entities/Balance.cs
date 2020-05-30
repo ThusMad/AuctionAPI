@@ -1,13 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace EPAM_DataAccessLayer.Entities
 {
-    public class RefreshToken
+    public class Balance
     {
         public Guid Id { get; set; }
-        public string? Token { get; set; }
-        public long TokenExpiration { get; set; }
+        public decimal PersonalFunds { get; set; }
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
+        public ICollection<BalanceTransactions>? Transactions { get; set; }
     }
 }

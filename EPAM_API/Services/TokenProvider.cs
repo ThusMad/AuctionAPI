@@ -39,7 +39,7 @@ namespace EPAM_API.Services
 
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = new ClaimsIdentity(await GetValidClaims(user)),
+                Subject = new ClaimsIdentity(await GetValidClaims(user).ConfigureAwait(false)),
                 Expires = DateTime.UtcNow.AddMinutes(10),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -65,11 +65,11 @@ namespace EPAM_API.Services
         public string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
+
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+
+            return Convert.ToBase64String(randomNumber);
         }
 
         public string RefreshAccessToken(string expiredAccessToken, out string newRefreshToken)

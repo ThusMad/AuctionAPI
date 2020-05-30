@@ -40,13 +40,14 @@ namespace EPAM_API.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GenerateToken([FromBody]AuthenticationDTO authenticationRequest)
         {
-            if (!await _accountService.IsValidUsernameAndPasswordCombinationAsync(authenticationRequest.Username,
-                authenticationRequest.Password))
+            if (!await _accountService.IsValidUsernameAndPasswordCombinationAsync(authenticationRequest.Username, authenticationRequest.Password))
+            {
                 return BadRequest(new ErrorDetails()
                 {
                     Message = "Username or password is incorrect",
                     StatusCode = 400
                 }.ToString());
+            }
 
             var accessToken = await _tokenProvider.GenerateAccessToken(authenticationRequest.Username);
             var refreshToken = _tokenProvider.GenerateRefreshToken();
@@ -67,6 +68,8 @@ namespace EPAM_API.Controllers
                     MaxAge = TimeSpan.FromMinutes(40),
                     Path = "/"
                 });
+
+            _logger.Log(LogLevel.Debug, $"user {authenticationRequest.Username} obtain token");
 
             return Ok();
         }
@@ -115,6 +118,8 @@ namespace EPAM_API.Controllers
                     MaxAge = TimeSpan.FromMinutes(60)
                 });
 
+            _logger.Log(LogLevel.Debug, $"user {userId} refreshed tokens");
+
             return Ok();
         }
 
@@ -132,6 +137,8 @@ namespace EPAM_API.Controllers
 
             HttpContext.Response.Cookies.Delete(".AspNetCore.Application.Id");
             HttpContext.Response.Cookies.Delete(".AspNetCore.Application.Cre");
+
+            _logger.Log(LogLevel.Debug, $"user {userId} logged out");
 
             return Ok();
         }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using EPAM_DataAccessLayer.Entities;
+﻿using EPAM_DataAccessLayer.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,7 +13,7 @@ namespace EPAM_DataAccessLayer.Configurations
                 .WithOne(a => a.DefaultPaymentMethod)
                 .HasForeignKey<DefaultPaymentMethod>(b => b.UserId);
 
-            builder.HasOne(r => r.PaymentMethod)   
+            builder.HasOne(r => r.PaymentMethod)
                 .WithMany()
                 .HasForeignKey(a => a.PaymentMethodId);
         }

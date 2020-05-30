@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using EPAM_DataAccessLayer.Enums;
+﻿using EPAM_DataAccessLayer.Enums;
+using System;
 
 namespace EPAM_DataAccessLayer.Entities
 {
@@ -32,6 +29,16 @@ namespace EPAM_DataAccessLayer.Entities
             Amount = amount;
             Description = description;
             Type = PaymentType.Transfer;
+            Status = PaymentStatus.Pending;
+            TimeOfCreation = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        }
+
+        public Payment(string senderId, decimal amount, string description)
+        {
+            SenderId = senderId;
+            Amount = amount;
+            Description = description;
+            Type = PaymentType.Subscription;
             Status = PaymentStatus.Pending;
             TimeOfCreation = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         }

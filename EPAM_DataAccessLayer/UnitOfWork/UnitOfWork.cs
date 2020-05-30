@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore.Storage;
-
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using EPAM_DataAccessLayer.Contexts;
+﻿using EPAM_DataAccessLayer.Contexts;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.Infrastructure;
 using EPAM_DataAccessLayer.Repositories;
@@ -16,11 +6,20 @@ using EPAM_DataAccessLayer.Repositories.Interfaces;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EPAM_DataAccessLayer.UnitOfWork
 {
     ///<inheritdoc cref="IUnitOfWork"/>
-    public class UnitOfWork: IUnitOfWork
+    public class UnitOfWork : IUnitOfWork
     {
         /// <summary>
         /// Collection of TEntity/<see cref="IRepository{TEntity}"/> pairs
@@ -51,24 +50,28 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             }
         }
 
-        private async Task SeedRoles()
-        {
-            string[] roles = { "Owner", "Administrator", "Moderator", "User", "Premium", "Plus" };
-            var roleStore = new RoleStore<IdentityRole>(Context)
-            {
-                AutoSaveChanges = true
-            };
+        // TODO: Remove
+        //private async Task SeedRoles()
+        //{
+        //    string[] roles = { "Owner", "Administrator", "Moderator", "User", "Premium", "Plus" };
+        //    var roleStore = new RoleStore<IdentityRole>(Context)
+        //    {
+        //        AutoSaveChanges = true
+        //    };
 
-            foreach (var role in roles)
-            {
-                if (!Context.Roles.Any(r => r.Name == role))
-                {
-                    var nr = new IdentityRole(role);
-                    nr.NormalizedName = role.ToUpper();
-                    await roleStore.CreateAsync(nr);
-                }
-            }
-        }
+        //    foreach (var role in roles)
+        //    {
+        //        if (Context.Roles.Any(r => r.Name == role)) {
+        //            continue;
+        //        }
+
+        //        var nr = new IdentityRole(role)
+        //        {
+        //            NormalizedName = role.ToUpper()
+        //        };
+        //        await roleStore.CreateAsync(nr);
+        //    }
+        //}
 
         /// <summary>
         /// Method that formats exceptions
@@ -98,7 +101,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
 
             var type = typeof(TEntity).Name;
 
-            if (_repositories.ContainsKey(type)) return (IRepository<TEntity>)_repositories[type];
+            if (_repositories.ContainsKey(type)) return _repositories[type] as IRepository<TEntity>;
 
             var repositoryType = typeof(Repository<>);
 
@@ -108,7 +111,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
 
             _repositories.Add(type, repositoryInstance);
 
-            return (IRepository<TEntity>)_repositories[type];
+            return _repositories[type] as IRepository<TEntity>;
         }
 
         public IUnitOfWorkTransaction BeginTransaction()
@@ -123,7 +126,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
 
         public async Task CommitAsync(CancellationToken cancellationToken = default)
         {
-            await CommitAsync(null, cancellationToken);
+            await CommitAsync(null, cancellationToken).ConfigureAwait(false);
         }
 
         public void Commit(IDbContextTransaction? transaction)
@@ -242,7 +245,7 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             return Repository<TEntity>().Any(predicate);
         }
 
-        public async Task<bool> AnyAsync<TEntity>(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) where TEntity : class
+        public async Task<bool>? AnyAsync<TEntity>(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default) where TEntity : class
         {
             return await Repository<TEntity>().AnyAsync(predicate, cancellationToken);
         }

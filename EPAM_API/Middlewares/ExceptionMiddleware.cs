@@ -14,11 +14,9 @@ namespace EPAM_API.Middlewares
     public class ExceptionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly ILogger _logger;
 
-        public ExceptionMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
+        public ExceptionMiddleware(RequestDelegate next)
         {
-            _logger = loggerFactory.CreateLogger<ExceptionMiddleware>();
             _next = next;
         }
 
@@ -30,7 +28,7 @@ namespace EPAM_API.Middlewares
             }
             catch (Exception ex)
             {
-                await HandleExceptionAsync(context, ex);
+                await HandleExceptionAsync(context, ex).ConfigureAwait(false);
             }
         }
 

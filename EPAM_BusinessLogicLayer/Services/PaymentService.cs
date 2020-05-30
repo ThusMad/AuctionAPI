@@ -30,7 +30,7 @@ namespace EPAM_BusinessLogicLayer.Services
 
         public async Task DeletePaymentMethodAsync(Guid id, Guid userId)
         {
-            var paymentMethod =  await GetById(id);
+            var paymentMethod =  await GetById(id).ConfigureAwait(false);
 
             if (paymentMethod.UserId != userId.ToString())
             {
@@ -43,7 +43,7 @@ namespace EPAM_BusinessLogicLayer.Services
 
         public async Task<PaymentMethodDTO> GetPaymentMethodAsync(Guid methodId, Guid userId)
         {
-            var paymentMethod = await GetById(methodId);
+            var paymentMethod = await GetById(methodId).ConfigureAwait(false);
 
             if (paymentMethod.UserId != userId.ToString())
             {
@@ -93,7 +93,7 @@ namespace EPAM_BusinessLogicLayer.Services
 
         public async Task SetDefaultPaymentMethodAsync(Guid userId, Guid paymentMethodId)
         {
-            var method = await GetById(paymentMethodId);
+            var method = await GetById(paymentMethodId).ConfigureAwait(false);
 
             if (method.UserId != userId.ToString())
             {
@@ -105,11 +105,10 @@ namespace EPAM_BusinessLogicLayer.Services
 
             if (currentDefault.Any())
             {
-                using (var transaction = _unitOfWork.BeginTransaction())
-                {
-                    transaction.Delete(currentDefault.First());
-                    await transaction.InsertAsync(methodToDefault);
-                }
+                using var transaction = _unitOfWork.BeginTransaction();
+
+                transaction.Delete(currentDefault.First());
+                await transaction.InsertAsync(methodToDefault);
             }
             else
             {

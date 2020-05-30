@@ -1,14 +1,12 @@
-﻿using System;
+﻿using EPAM_DataAccessLayer.Contexts;
+using EPAM_DataAccessLayer.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_DataAccessLayer.Contexts;
-using EPAM_DataAccessLayer.Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace EPAM_DataAccessLayer.Repositories
 {
@@ -111,7 +109,7 @@ namespace EPAM_DataAccessLayer.Repositories
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-           return await _context.SaveChangesAsync(cancellationToken);
+            return await _context.SaveChangesAsync(cancellationToken);
         }
 
     }

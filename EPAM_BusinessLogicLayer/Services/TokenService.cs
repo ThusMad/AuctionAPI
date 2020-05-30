@@ -24,14 +24,14 @@ namespace EPAM_BusinessLogicLayer.Services
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
-            await UpdateToken(user, refreshToken, lifetime);
+            await UpdateToken(user, refreshToken);
         }
 
         public async Task UpdateRefreshTokenAsync(string username, string refreshToken, int lifetime = 5)
         {
             var user = await _userManager.FindByNameAsync(username);
 
-            await UpdateToken(user, refreshToken, lifetime);
+            await UpdateToken(user, refreshToken).ConfigureAwait(false);
         }
 
         public async Task RemoveTokenFromUserAsync(Guid userId)
@@ -68,10 +68,11 @@ namespace EPAM_BusinessLogicLayer.Services
             return tokens.First().UserId == userId.ToString();
         }
 
-        private async Task UpdateToken(ApplicationUser user, string newRefreshToken, int lifetime)
+        private async Task UpdateToken(ApplicationUser user, string newRefreshToken)
         {
             var refreshTokens = _unitOfWork.Find<RefreshToken>(a => a.UserId == user.Id).AsEnumerable();
-            var tokens = refreshTokens as RefreshToken[] ?? refreshTokens.ToArray();
+            var tokens = refreshTokens as RefreshToken[] ??
+                         (refreshTokens ?? throw new ArgumentNullException(nameof(refreshTokens))).ToArray();
 
             if (!tokens.Any())
             {

@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using EPAM_DataAccessLayer.Configurations;
+﻿using EPAM_DataAccessLayer.Configurations;
 using EPAM_DataAccessLayer.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace EPAM_DataAccessLayer.Contexts
 {
@@ -31,13 +31,15 @@ namespace EPAM_DataAccessLayer.Contexts
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new AuctionCategoryConfiguration());
             modelBuilder.ApplyConfiguration(new DefaultPaymentMethodConfiguration());
+            modelBuilder.ApplyConfiguration(new BalanceConfiguration());
+            modelBuilder.ApplyConfiguration(new BalanceTransactionsConfiguration());
         }
 
         public override int SaveChanges()
         {
             var entities = (from entry in ChangeTracker.Entries()
-                where entry.State == EntityState.Modified || entry.State == EntityState.Added
-                select entry.Entity);
+                            where entry.State == EntityState.Modified || entry.State == EntityState.Added
+                            select entry.Entity);
 
             var validationResults = new List<ValidationResult>();
             if (entities.Any(entity => !Validator.TryValidateObject(entity, new ValidationContext(entity), validationResults)))
