@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_DataAccessLayer.Entities;
-using Microsoft.AspNetCore.Identity;
 
 namespace EPAM_BusinessLogicLayer.Services.Interfaces
 {

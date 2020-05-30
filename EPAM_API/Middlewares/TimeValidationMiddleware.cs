@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using EPAM_API.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

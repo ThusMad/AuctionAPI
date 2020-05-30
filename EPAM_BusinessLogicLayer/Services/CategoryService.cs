@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using AutoMapper;
 using EPAM_BusinessLogicLayer.DataTransferObjects;
@@ -62,7 +61,7 @@ namespace EPAM_BusinessLogicLayer.Services
                 throw new ItemNotFountException(nameof(id), "Category with following id not found");
             }
 
-            _unitOfWork.Delete(category);
+            _unitOfWork.Remove(category);
 
             await _unitOfWork.CommitAsync();
         }
@@ -80,7 +79,7 @@ namespace EPAM_BusinessLogicLayer.Services
                 }
             }
 
-            _unitOfWork.DeleteRange(categoriesToDelete);
+            _unitOfWork.RemoveRange(categoriesToDelete);
 
             await _unitOfWork.CommitAsync();
         }

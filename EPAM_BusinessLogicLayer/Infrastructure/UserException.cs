@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace EPAM_BusinessLogicLayer.Infrastructure
+﻿namespace EPAM_BusinessLogicLayer.Infrastructure
 {
     public class UserException : ErrorException
     {

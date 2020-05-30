@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer.Infrastructure

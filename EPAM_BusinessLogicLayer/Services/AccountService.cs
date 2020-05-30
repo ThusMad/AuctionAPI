@@ -8,7 +8,6 @@ using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
-using EPAM_BusinessLogicLayer.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -105,7 +104,7 @@ namespace EPAM_BusinessLogicLayer.Services
 
             using var transaction = _unitOfWork.BeginTransaction();
 
-            transaction.Delete(user.ProfilePicture);
+            transaction.Remove(user.ProfilePicture);
             user.ProfilePicture = new Media(url);
             transaction.Update(user);
         }

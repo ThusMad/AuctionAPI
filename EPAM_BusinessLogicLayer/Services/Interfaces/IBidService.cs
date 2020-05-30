@@ -1,5 +1,4 @@
 ﻿using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_DataAccessLayer.Entities;
 
 namespace EPAM_BusinessLogicLayer.Services.Interfaces
 {

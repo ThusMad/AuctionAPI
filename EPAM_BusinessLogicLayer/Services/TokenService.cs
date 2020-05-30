@@ -40,7 +40,7 @@ namespace EPAM_BusinessLogicLayer.Services
 
             if (token.Any())
             {
-                _unitOfWork.Delete(token.First());
+                _unitOfWork.Remove(token.First());
                 await _unitOfWork.CommitAsync();
             }
         }

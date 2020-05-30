@@ -37,7 +37,7 @@ namespace EPAM_BusinessLogicLayer.Services
                 throw new AccessViolationException("Cannot access payment method of another user");
             }
 
-            _unitOfWork.Delete(paymentMethod);
+            _unitOfWork.Remove(paymentMethod);
             await _unitOfWork.CommitAsync();
         }
 
@@ -107,7 +107,7 @@ namespace EPAM_BusinessLogicLayer.Services
             {
                 using var transaction = _unitOfWork.BeginTransaction();
 
-                transaction.Delete(currentDefault.First());
+                transaction.Remove(currentDefault.First());
                 await transaction.InsertAsync(methodToDefault);
             }
             else

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using AutoMapper;
 using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_DataAccessLayer.Entities;
@@ -24,15 +22,15 @@ namespace EPAM_BusinessLogicLayer.Profiles
                 .AfterMap(ModifyCategories);
         }
 
-        private void ModifyCategories(AuctionDTO auctionDto, Auction auction)
+        private static void ModifyCategories(AuctionDTO auctionDto, Auction auction)
         {
             auction.CreationTime = Utility.DateTimeToUnixTimestamp(DateTime.UtcNow);
-            if (auction.Categories != null)
+            if (auction.Categories == null) 
+                return;
+
+            foreach (var category in auction.Categories)
             {
-                foreach (var category in auction.Categories)
-                {
-                    category.Auction = auction;
-                }
+                category.Auction = auction;
             }
         }
 

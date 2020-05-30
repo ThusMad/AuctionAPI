@@ -145,7 +145,7 @@ namespace EPAM_BusinessLogicLayer.Services
                 throw new Exception("Can't delete auction that already in action, for additional information contact administration");
             }
 
-            _unitOfWork.Delete(auction);
+            _unitOfWork.Remove(auction);
             await _unitOfWork.CommitAsync();
         }
 

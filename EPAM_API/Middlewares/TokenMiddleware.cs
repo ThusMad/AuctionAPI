@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using EPAM_API.Helpers;
+﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -15,7 +11,7 @@ namespace EPAM_API.Middlewares
 
         public TokenMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
         {
-            this._next = next;
+            _next = next;
             _logger = loggerFactory.CreateLogger<TokenMiddleware>();
         }
 

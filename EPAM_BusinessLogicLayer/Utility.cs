@@ -28,12 +28,5 @@ namespace EPAM_BusinessLogicLayer
         {
             return (long)dateTime.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         }
-
-        public static Task SendStringToWebsocket(WebSocket ws, string data, CancellationToken cancellation)
-        {
-            var encoded = Encoding.UTF8.GetBytes(data);
-            var buffer = new ArraySegment<byte>(encoded, 0, encoded.Length);
-            return ws.SendAsync(buffer, WebSocketMessageType.Text, true, cancellation);
-        }
     }
 }

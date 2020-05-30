@@ -200,12 +200,12 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             Repository<TEntity>().UpdateRange(entities);
         }
 
-        public TEntity Delete<TEntity>(TEntity entity) where TEntity : class
+        public TEntity Remove<TEntity>(TEntity entity) where TEntity : class
         {
             return Repository<TEntity>().Remove(entity);
         }
 
-        public void DeleteRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
+        public void RemoveRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
         {
             Repository<TEntity>().RemoveRange(entities);
         }

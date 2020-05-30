@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AutoMapper;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
+﻿using AutoMapper;
 using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Extensions;
 using EPAM_DataAccessLayer.Entities;
