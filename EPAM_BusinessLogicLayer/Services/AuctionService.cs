@@ -205,14 +205,15 @@ namespace EPAM_BusinessLogicLayer.Services
                 .Include(a => a.Images)
                 .Include(a => a.Creator)
                 .Include(a => a.Categories)
-                .ThenInclude(x => x.Category).ToArrayAsync();
+                .ThenInclude(x => x.Category)
+                .ToArrayAsync();
 
-            if (auctions.Any())
+            if (!auctions.Any())
             {
-                return auctions.First();
+                throw new ItemNotFountException(nameof(auctions), "Auction with following id not found");
             }
 
-            throw new ItemNotFountException(nameof(auctions), "Auction with following id not found");
+            return auctions.First();
         }
     }
 }

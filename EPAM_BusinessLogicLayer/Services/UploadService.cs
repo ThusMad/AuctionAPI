@@ -9,17 +9,39 @@ using System.Threading.Tasks;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace EPAM_BusinessLogicLayer.Services
 {
+    /// <summary>
+    /// ///<inheritdoc cref="IUploadService"/>
+    /// </summary>
     class UploadService : IUploadService
     {
+        /// <summary>
+        /// 
+        /// </summary>
+        private readonly ILogger _logger;
+        /// <summary>
+        /// 
+        /// </summary>
         private const string RootFolder = "wwwroot";
+        /// <summary>
+        /// 
+        /// </summary>
         private const string ImagesFolder = "images";
+        /// <summary>
+        /// 
+        /// </summary>
+        private static string ImagesPath => Path.Combine(RootFolder, ImagesFolder);
 
-        public UploadService()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="loggerFactory"></param>
+        public UploadService(ILoggerFactory loggerFactory)
         {
-
+            _logger = loggerFactory.CreateLogger(typeof(UploadService));
         }
 
         public async Task<string[]> UploadAsync(List<IFormFile> files)
@@ -36,20 +58,75 @@ namespace EPAM_BusinessLogicLayer.Services
 
             foreach (var file in files)
             {
-                var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
-                var extension = Path.GetExtension(fileName);
-                var hashedName = Utility.GetHashString(fileName + Utility.DateTimeToUnixTimestamp(DateTime.UtcNow)) + extension;
-                var fullPath = Path.Combine(pathToSave, hashedName);
-
-                var dbPath = "https://localhost:44391/uploads/" + hashedName; 
-
-                await using var stream = new FileStream(fullPath, FileMode.Create);
-                await file.CopyToAsync(stream);
-
-                paths.Add(dbPath);
+                paths.Add(await SaveFile(file, pathToSave));
             }
 
             return paths.ToArray();
+        }
+
+        public async Task<string> UploadAsync(IFormFile file)
+        {
+            return await SaveFile(file, ImagesPath);
+        }
+
+        public async Task RemoveAsync(List<string> files)
+        {
+            foreach (var file in files)
+            {
+                try
+                {
+                    await RemoveFileAsync(file, ImagesPath);
+                }
+                catch (FileNotFoundException e)
+                {
+                    _logger.LogError(e.Message);
+                }
+            }
+        }
+
+        public async Task RemoveAsync(string file)
+        {
+            await RemoveFileAsync(file, ImagesPath);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filepath"></param>
+        /// <param name="rootPath"></param>
+        /// <returns></returns>
+        private static Task RemoveFileAsync(string filepath, string rootPath)
+        {
+            var fileName = Path.GetFileName(filepath);
+            var path = Path.Combine(rootPath, fileName);
+
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException($"File {fileName} not present");
+            }
+
+            return Task.Run(() => { File.Delete(path); });
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        private static async Task<string> SaveFile(IFormFile file, string path)
+        {
+            var fileName = ContentDispositionHeaderValue.Parse(file.ContentDisposition).FileName.Trim('"');
+            var extension = Path.GetExtension(fileName);
+            var hashedName = Utility.GetHashString(fileName + Utility.DateTimeToUnixTimestamp(DateTime.UtcNow)) + extension;
+            var fullPath = Path.Combine(path, hashedName);
+
+            var dbPath = "https://localhost:44391/uploads/" + hashedName;
+
+            await using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
+
+            return dbPath;
         }
     }
 }

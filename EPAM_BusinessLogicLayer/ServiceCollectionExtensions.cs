@@ -14,15 +14,14 @@ namespace EPAM_BusinessLogicLayer
 {
     public static class ServiceCollectionExtensions
     {
-        public static void AddBll(this IServiceCollection services)
+        public static void AddBll(this IServiceCollection services, string connectionString)
         {
             services.AddDbContext<AuctionContext>(opts =>
-                opts.UseSqlServer(@"Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=D:\Projects\EPAM_Auction\EPAM_DataAccessLayer\App_Data\Auction_DB.mdf;Integrated Security=True"));
+                opts.UseSqlServer(connectionString));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<AuctionContext>();
 
-            
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<ITokenService, TokenService>();
             services.AddTransient<IAccountService, AccountService>();

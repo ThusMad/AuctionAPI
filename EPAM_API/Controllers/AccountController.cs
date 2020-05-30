@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.DataTransferObjects;
 using EPAM_BusinessLogicLayer.Infrastructure;
 using EPAM_BusinessLogicLayer.Services.Interfaces;
@@ -12,7 +11,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace EPAM_API.Controllers
 {
@@ -22,13 +20,15 @@ namespace EPAM_API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
+        private readonly IUploadService _uploadService;
         private readonly IUserProvider _userProvider;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IAccountService accountService, IUserProvider userProvider,  ILogger<AccountController> logger)
+        public AccountController(IAccountService accountService, IUploadService uploadService, IUserProvider userProvider,  ILogger<AccountController> logger)
         {
             _logger = logger;
             _accountService = accountService;
+            _uploadService = uploadService;
             _userProvider = userProvider;
 
             if (_userProvider == null || _accountService == null)
@@ -118,6 +118,26 @@ namespace EPAM_API.Controllers
             var users = await _accountService.GetAllUsersAsync(limit, offset);
 
             return Ok(JsonSerializer.Serialize(users));
+        }
+
+        [HttpPost("attach"), DisableRequestSizeLimit]
+        [Authorize]
+        public async Task<IActionResult> UpdateProfilePicture(IFormFile file)
+        {
+            var userId = _userProvider.GetUserId();
+            var imagePath = await _uploadService.UploadAsync(file);
+
+            try
+            {
+                await _accountService.AttachProfilePicture(userId, imagePath);
+            }
+            catch (Exception)
+            {
+                await _uploadService.RemoveAsync(imagePath);
+                throw;
+            }
+
+            return Ok(JsonSerializer.Serialize(imagePath));
         }
     }
 }

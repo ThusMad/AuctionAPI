@@ -1,17 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Net.WebSockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_SocketSlot.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.CSharp.RuntimeBinder;
-using Microsoft.Extensions.Logging;
 
 namespace EPAM_API.Controllers
 {

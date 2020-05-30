@@ -55,7 +55,7 @@ namespace EPAM_API
             services.Configure<AppSettings>(appSettingsSection);
             services.AddAntiforgery(options => { options.HeaderName = "x-xsrf-token"; });
 
-            services.AddBll();
+            services.AddBll(appSettings.ConnectionString);
 
             services.AddAuthentication(x =>
                 {

@@ -12,6 +12,8 @@ namespace EPAM_DataAccessLayer.Configurations
 
             builder.Property(b => b.Balance)
                 .ValueGeneratedOnAdd();
+
+            builder.HasOne(a => a.ProfilePicture);
         }
     }
 }

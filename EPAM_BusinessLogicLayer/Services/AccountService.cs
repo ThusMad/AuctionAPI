@@ -97,11 +97,17 @@ namespace EPAM_BusinessLogicLayer.Services
         /// 
         /// </summary>
         /// <param name="userId"></param>
-        /// <param name="media"></param>
+        /// <param name="url"></param>
         /// <returns></returns>
-        public Task AttachProfilePicture(Guid userId, string media)
+        public async Task AttachProfilePicture(Guid userId, string url)
         {
-            throw new NotImplementedException();
+            var user = await GetUserByIdAsync(userId);
+
+            using var transaction = _unitOfWork.BeginTransaction();
+
+            transaction.Delete(user.ProfilePicture);
+            user.ProfilePicture = new Media(url);
+            transaction.Update(user);
         }
 
         /// <summary>
