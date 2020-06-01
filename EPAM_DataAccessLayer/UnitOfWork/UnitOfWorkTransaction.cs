@@ -32,7 +32,16 @@ namespace EPAM_DataAccessLayer.UnitOfWork
 
         public void Commit()
         {
-            _unitOfWork.Commit();
+            try
+            {
+                _unitOfWork.Commit();
+            }
+            catch (Exception e)
+            {
+                Rollback();
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         public async Task CommitAsync(CancellationToken cancellationToken = default)

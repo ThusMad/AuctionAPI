@@ -1,9 +1,10 @@
 ﻿using EPAM_DataAccessLayer.Enums;
 using System;
+using EPAM_DataAccessLayer.Entities.Interfaces.Payments;
 
 namespace EPAM_DataAccessLayer.Entities
 {
-    public class Payment
+    public class Payment : ITransferPayment, ISubscriptionPayment
     {
         public Guid Id { get; set; }
         public decimal Amount { get; set; }

@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using EPAM_DataAccessLayer.Entities.Interfaces.Users;
 
 namespace EPAM_DataAccessLayer.Entities
 {
     [Table("Users")]
-    public class ApplicationUser : IdentityUser
+    public class ApplicationUser : IdentityUser, IBalanceHolder
     {
         [MaxLength(50)]
         public string? FirstName { get; set; }
