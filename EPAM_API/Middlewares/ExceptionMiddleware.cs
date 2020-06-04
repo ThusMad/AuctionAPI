@@ -2,8 +2,8 @@
 using System.Net;
 using System.Threading.Tasks;
 using EPAM_API.Models;
-using EPAM_BusinessLogicLayer.Infrastructure;
 using Microsoft.AspNetCore.Http;
+using Services.Infrastructure.Exceptions;
 
 namespace EPAM_API.Middlewares
 {

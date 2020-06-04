@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace EPAM_BusinessLogicLayer.BusinessModels
 {
-    internal class Fee
+    public class Fee
     {
         public decimal Value { get; }
 

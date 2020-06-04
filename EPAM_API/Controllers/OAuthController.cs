@@ -3,12 +3,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using EPAM_API.Models;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Services.AccountService.Interfaces;
+using Services.DataTransferObjects.Objects;
+using Services.TokenService.Interfaces;
 
 namespace EPAM_API.Controllers
 {

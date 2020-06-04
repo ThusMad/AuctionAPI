@@ -3,11 +3,11 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_SocketSlot.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.AuctionService.Interfaces;
+using Services.DataTransferObjects.Objects;
 
 namespace EPAM_API.Controllers
 {

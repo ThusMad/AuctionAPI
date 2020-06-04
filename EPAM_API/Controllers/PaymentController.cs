@@ -2,15 +2,16 @@
 using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.DataTransferObjects.Objects;
+using Services.PaymentService.Interfaces;
 
 namespace EPAM_API.Controllers
 {
     [Route("api/payment")]
     [ApiController]
+    [Authorize]
     public class PaymentController : ControllerBase
     {
         private readonly IUserProvider _userProvider;
@@ -22,35 +23,30 @@ namespace EPAM_API.Controllers
             _userProvider = userProvider;
         }
 
-        [Authorize]
         [HttpPost, Route("proceed")]
         public IActionResult ProceedPayment(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpPost, Route("create")]
         public IActionResult CreatePayment(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpDelete, Route("create")]
         public IActionResult DeletePayment(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpGet]
         public IActionResult GetPayment(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpGet, Route("getAll")]
         public IActionResult GetAllPayments(int? limit, int? offset)
         {
@@ -59,7 +55,6 @@ namespace EPAM_API.Controllers
 
         #region Methods
 
-        [Authorize]
         [HttpPost, Route("methods/create")]
         public async Task<IActionResult> CreatePaymentMethod([FromBody]PaymentMethodDTO request)
         {
@@ -68,7 +63,6 @@ namespace EPAM_API.Controllers
             return Ok(JsonSerializer.Serialize(request));
         }
 
-        [Authorize]
         [HttpDelete, Route("methods/delete")]
         public async Task<IActionResult> DeletedPaymentMethod(Guid id)
         {
@@ -77,7 +71,6 @@ namespace EPAM_API.Controllers
             return Ok();
         }
 
-        [Authorize]
         [HttpPost, Route("methods/setDefault")]
         public async Task<IActionResult> SetDefaultPaymentMethods(Guid methodId)
         {
@@ -85,7 +78,6 @@ namespace EPAM_API.Controllers
             return Ok();
         }
 
-        [Authorize]
         [HttpGet, Route("methods/get")]
         public async Task<IActionResult> GetPaymentMethods(Guid id)
         {
@@ -93,7 +85,6 @@ namespace EPAM_API.Controllers
             return Ok(JsonSerializer.Serialize(method));
         }
 
-        [Authorize]
         [HttpGet, Route("methods/getDefault")]
         public async Task<IActionResult> GetDefaultPaymentMethods()
         {
@@ -101,7 +92,6 @@ namespace EPAM_API.Controllers
             return Ok(JsonSerializer.Serialize(method));
         }
 
-        [Authorize]
         [HttpGet, Route("methods/getAll")]
         public async Task<IActionResult> GetPaymentMethods(int? limit, int? offset)
         {
@@ -113,35 +103,30 @@ namespace EPAM_API.Controllers
 
         #region Infos
 
-        [Authorize]
         [HttpPost, Route("create")]
         public IActionResult GetPaymentInfo(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpGet, Route("info")]
         public IActionResult GetInfo(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpGet, Route("info/getAll")]
         public IActionResult GetAllInfo(int? limit, int? offset)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpDelete, Route("info")]
         public IActionResult DeleteInfo(Guid id)
         {
             return Ok();
         }
 
-        [Authorize]
         [HttpGet, Route("info/getDetails")]
         public IActionResult GetAllInfo(Guid id)
         {

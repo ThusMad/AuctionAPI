@@ -3,14 +3,15 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Infrastructure;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Services.AccountService.Interfaces;
+using Services.DataTransferObjects.Objects;
+using Services.Infrastructure.Exceptions;
+using Services.UploadService.Interfaces;
 
 namespace EPAM_API.Controllers
 {
