@@ -11,6 +11,7 @@ using Services.AuctionService.Extensions;
 using Services.AuctionService.Interfaces;
 using Services.DataTransferObjects.Objects;
 using Services.Infrastructure.Exceptions;
+using AccessViolationException = Services.Infrastructure.Exceptions.AccessViolationException;
 
 namespace Services.AuctionService.Service
 {
@@ -163,7 +164,12 @@ namespace Services.AuctionService.Service
             // TODO: Implement own exception
             if(auction.StartTime > DateTimeOffset.UtcNow.ToUnixTimeSeconds() && auction.EndTime < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
-                throw new Exception("auction already expires or not started yet");
+                throw new Exception("Auction already expires or not started yet");
+            }
+
+            if (auction.UserId == userId.ToString())
+            {
+                throw new AccessViolationException("Unable to place bids in own auction");
             }
 
             var latestBids = await _unitOfWork.Find<Bid>(b => b.AuctionId == auctionId)
@@ -176,14 +182,14 @@ namespace Services.AuctionService.Service
                 var latestBid = latestBids.First();
                 if (latestBid.Price > price && Math.Abs(latestBid.Price - price) < auction.PriceStep)
                 {
-                    throw new UserException(200, "price can't be less then latest price with price step");
+                    throw new UserException(200, "Price can't be less then latest price with price step");
                 }
             }
             else
             {
                 if (Math.Abs(auction.StartPrice - price) < auction.PriceStep)
                 {
-                    throw new UserException(200, "price can't be less then start price with price step");
+                    throw new UserException(200, "Price can't be less then start price with price step");
                 }
             }
 

@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using EPAM_API.Helpers;
+using EPAM_API.Services;
+using EPAM_API.Services.Interfaces;
 using EPAM_DataAccessLayer.UnitOfWork;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -26,21 +29,18 @@ using Services.UploadService.Service;
 
 namespace EPAM_API.Extensions
 {
-    public static class ServiceExtension
+    public static class ServiceExtensions
     {
         public static void AddServices(this IServiceCollection services)
         {
             services.AddTransient<IUnitOfWork, UnitOfWork>();
             services.AddTransient<ITokenService, TokenService>();
             services.AddTransient<IAccountService, AccountService>();
-            services.AddSingleton<IAuctionService, AuctionService>();
-            services.AddSingleton<ICategoryService, CategoryService>();
+            services.AddTransient<IAuctionService, AuctionService>();
+            services.AddTransient<ICategoryService, CategoryService>();
             services.AddSingleton<IUploadService, UploadService>();
-        }
-
-        public static void AddMapper(this IServiceCollection services)
-        {
-            services.AddAutoMapper(Assembly.GetExecutingAssembly());
+            services.AddTransient<ITokenProvider, TokenProvider>();
+            services.AddTransient<IUserProvider, UserProvider>();
         }
 
         public static void AddAuctionAuthentication(this IServiceCollection services, byte[] securityKey)

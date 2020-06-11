@@ -56,14 +56,14 @@ namespace EPAM_API.Controllers
         }
 
         [Authorize]
-        [HttpPatch, Route("update")]
+        [HttpPatch]
         public async Task<IActionResult> Update([FromBody]ApplicationUserPatchModel request)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest("Malformed request");
             }
-
+            
             var id = _userProvider.GetUserId();
 
             await _accountService.UpdateUserAsync(id, request);
@@ -81,8 +81,8 @@ namespace EPAM_API.Controllers
         }
 
         [AllowAnonymous]
-        [HttpGet, Route("view")]
-        public async Task<IActionResult> Get(Guid userId)
+        [HttpGet, Route("preview")]
+        public async Task<IActionResult> GetPreview(Guid userId)
         {
             var user = await _accountService.GetUserByIdAsync<ApplicationUserPreviewDTO>(userId);
 
@@ -90,16 +90,7 @@ namespace EPAM_API.Controllers
         }
 
         [Authorize]
-        [HttpDelete]
-        public async Task<IActionResult> Delete()
-        {
-            await _accountService.RemoveUserAsync(_userProvider.GetUserId());
-
-            return Ok();
-        }
-
-        [Authorize]
-        [HttpGet, Route("detail")]
+        [HttpGet, Route("detailed")]
         public async Task<IActionResult> GetDetailed(Guid userId)
         {
             if (_userProvider.GetUserId() != userId)
@@ -112,6 +103,15 @@ namespace EPAM_API.Controllers
 
         }
 
+        [Authorize]
+        [HttpDelete, Route("deleteAccount")]
+        public async Task<IActionResult> Delete()
+        {
+            await _accountService.RemoveUserAsync(_userProvider.GetUserId());
+
+            return Ok();
+        }
+
         [Authorize(Roles = Roles.User)]
         [HttpGet, Route("getAll")]
         public async Task<IActionResult> GetAll(int? limit, int? offset)
@@ -121,7 +121,7 @@ namespace EPAM_API.Controllers
             return Ok(JsonSerializer.Serialize(users));
         }
 
-        [HttpPost("attach"), DisableRequestSizeLimit]
+        [HttpPost("addProfilePicture"), DisableRequestSizeLimit]
         [Authorize]
         public async Task<IActionResult> UpdateProfilePicture(IFormFile file)
         {

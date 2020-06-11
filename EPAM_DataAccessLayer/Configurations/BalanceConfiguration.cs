@@ -11,10 +11,6 @@ namespace EPAM_DataAccessLayer.Configurations
             builder.ToTable("Balances")
                 .HasIndex(a => a.Id)
                 .IsUnique();
-
-            builder.HasOne(bc => bc.User)
-                .WithOne(b => b.Balance)
-                .HasForeignKey<Balance>(a => a.UserId);
         }
     }
 }

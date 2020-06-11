@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EPAM_DataAccessLayer.Configurations
 {
-    class TokenConfiguration : IEntityTypeConfiguration<RefreshToken>
+    class RefreshTokenConfiguration : IEntityTypeConfiguration<RefreshToken>
     {
         public void Configure(EntityTypeBuilder<RefreshToken> builder)
         {
-            builder.ToTable("Tokens")
+            builder.ToTable("RefreshTokens")
                 .HasOne(t => t.User)
                 .WithOne(u => u.RefreshToken)
                 .HasForeignKey<RefreshToken>(t => t.UserId);

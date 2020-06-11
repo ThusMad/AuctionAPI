@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EPAM_DataAccessLayer\EPAM_DataAccessLayer.csproj" />
+    <ProjectReference Include="..\Services.DataTransferObjects\Services.DataTransferObjects.csproj" />
     <ProjectReference Include="..\Services.Infrastructure\Services.Infrastructure.csproj" />
   </ItemGroup>
 

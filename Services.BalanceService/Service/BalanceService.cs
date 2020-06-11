@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -7,11 +9,16 @@ using EPAM_DataAccessLayer.Entities.Interfaces.Payments;
 using EPAM_DataAccessLayer.Entities.Interfaces.Users;
 using EPAM_DataAccessLayer.Enums;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Services.BalanceService.Interfaces;
+using Services.DataTransferObjects.Objects;
 using Services.Infrastructure.Exceptions;
+using AccessViolationException = Services.Infrastructure.Exceptions.AccessViolationException;
 
 namespace Services.BalanceService.Service
 {
+    //TODO: Add User Updates stream
     public class BalanceService : IBalanceService
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -25,14 +32,9 @@ namespace Services.BalanceService.Service
             _mapper = mapper;
         }
 
-        public Task Transfer(Guid userId, Guid recipientId, decimal amount)
+        public async Task ProceedPaymentAsync(Guid userId, Guid paymentId)
         {
-            throw new NotImplementedException();
-        }
-
-        public async Task Transfer(Guid userId, Guid paymentId)
-        {
-            var payment = await GetPayment(paymentId);
+            var payment = await GetPaymentByIdAsync(paymentId);
             var sender = await GetUserByIdAsync(userId) as IBalanceHolder;
 
             if (payment.SenderId != userId.ToString())
@@ -42,7 +44,7 @@ namespace Services.BalanceService.Service
 
             if (payment.Status == PaymentStatus.Confirmed)
             {
-                throw new PaymentAlreadyCompletedException("Payment with following id already completed", paymentId);
+                throw new PaymentAlreadyCompletedException("Payment with following userId already completed", paymentId);
             }
 
             if (sender.Balance.PersonalFunds < payment.Amount)
@@ -54,35 +56,81 @@ namespace Services.BalanceService.Service
             {
                 var recipient = await GetUserByIdAsync(Guid.Parse(payment.RecipientId));
 
-                await HandleTransfer(payment, sender, recipient);
+                await HandleTransferAsync(payment, sender, recipient);
             }
             else
             {
-                await HandleSubscription(payment, sender);
+                await HandleSubscriptionAsync(payment, sender);
             }
         }
 
-        public Task ReplenishBalance(Guid userId, Guid paymentMethod)
+        public async Task RefillBalanceAsync(Guid userId, Guid paymentMethodId, decimal amount)
         {
-            throw new NotImplementedException();
+            var paymentMethod = await GetPaymentMethodByIdAsync(paymentMethodId);
+            var balance = await GetUserBalanceByIdAsync(userId);
+
+            using var transaction = _unitOfWork.BeginTransaction();
+
+            balance.PersonalFunds += amount;
+            transaction.Update(balance);
+            await transaction.InsertAsync(new BalanceTransaction(TransactionType.Refill, balance.Id,
+                amount, $"From the card {paymentMethod.CardNumber}"));
         }
 
-        public Task WithdrawalBalance(Guid userId)
+        public async Task WithdrawalBalanceAsync(Guid userId, Guid paymentMethodId, decimal amount)
         {
-            throw new NotImplementedException();
+            var paymentMethod = await GetPaymentMethodByIdAsync(paymentMethodId);
+            var balance = await GetUserBalanceByIdAsync(userId);
+
+            using var transaction = _unitOfWork.BeginTransaction();
+
+            balance.PersonalFunds -= amount;
+            transaction.Update(balance);
+            await transaction.InsertAsync(new BalanceTransaction(TransactionType.Withdrawal, balance.Id,
+                amount, $"To the card {paymentMethod.CardNumber}"));
         }
 
-        public Task WithdrawalBalance(Guid userId, Guid paymentMethod)
+        public async Task WithdrawalBalanceAsync(Guid userId, string cardNumber, decimal amount)
         {
-            throw new NotImplementedException();
+            var balance = await GetUserBalanceByIdAsync(userId);
+
+            using var transaction = _unitOfWork.BeginTransaction();
+
+            balance.PersonalFunds -= amount;
+            transaction.Update(balance);
+            await transaction.InsertAsync(new BalanceTransaction(TransactionType.Withdrawal, balance.Id,
+                amount, $"To: {cardNumber}"));
         }
 
-        public Task WithdrawalBalance(Guid userId, string cardNumber)
+        public async Task<BalanceTransactionDTO> GetBalanceTransactionAsync(Guid userId, Guid transactionId)
         {
-            throw new NotImplementedException();
+            var transaction = await GetBalanceTransactionByIdAsync(transactionId);
+            var senderBalance = await GetUserBalanceByIdAsync(transaction.BalanceId);
+
+            if (senderBalance.UserId != userId.ToString())
+            {
+                throw new AccessViolationException("Unable to access this transaction");
+            }
+
+            return _mapper.Map<BalanceTransaction, BalanceTransactionDTO>(transaction);
         }
 
-        private async Task HandleTransfer(ITransferPayment payment, IBalanceHolder senderBalanceHolder, IBalanceHolder recipientBalanceHolder)
+        public async Task<IEnumerable<BalanceTransactionDTO>> GetAllBalanceTransactionsAsync(Guid userId, int? limit, int? offset)
+        {
+            var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
+            var offsetVal = offset ?? 0;
+
+            var user = await GetBalanceTransactionByIdAsync(userId);
+
+            var transactionsQuery = _unitOfWork.Find<BalanceTransaction>(t => t.BalanceId == user.BalanceId)
+                .Skip(offsetVal)
+                .Take(limitVal);
+
+            return _mapper.Map<IEnumerable<BalanceTransaction>, IEnumerable<BalanceTransactionDTO>>(await transactionsQuery.ToListAsync());
+        }
+
+
+        private async Task HandleTransferAsync(ITransferPayment payment, IBalanceHolder senderBalanceHolder, IBalanceHolder recipientBalanceHolder)
         {
             var senderBalance = senderBalanceHolder.Balance;
             var recipientBalance = recipientBalanceHolder.Balance;
@@ -94,13 +142,13 @@ namespace Services.BalanceService.Service
                 transaction.Update(senderBalance);
                 transaction.Update(recipientBalance);
 
-                await transaction.InsertAsync(new BalanceTransactions(TransactionType.Withdrawal, senderBalance.Id,
-                    payment.Amount));
-                await transaction.InsertAsync(new BalanceTransactions(TransactionType.Refill, recipientBalance.Id, 
-                    payment.Amount));
+                await transaction.InsertAsync(new BalanceTransaction(TransactionType.Withdrawal, senderBalance.Id,
+                    payment.Amount, payment.Description));
+                await transaction.InsertAsync(new BalanceTransaction(TransactionType.Refill, recipientBalance.Id, 
+                    payment.Amount, payment.Description));
         }
 
-        private async Task HandleSubscription(ISubscriptionPayment payment, IBalanceHolder senderBalanceHolder)
+        private async Task HandleSubscriptionAsync(ISubscriptionPayment payment, IBalanceHolder senderBalanceHolder)
         {
             var senderBalance = senderBalanceHolder.Balance;
 
@@ -108,17 +156,41 @@ namespace Services.BalanceService.Service
                 senderBalance.PersonalFunds -= payment.Amount;
                 transaction.Update(senderBalance);
 
-                await transaction.InsertAsync(new BalanceTransactions(TransactionType.Withdrawal, senderBalance.Id,
-                    payment.Amount));
+                await transaction.InsertAsync(new BalanceTransaction(TransactionType.Withdrawal, senderBalance.Id,
+                    payment.Amount, payment.Description));
         }
 
-        private async Task<Payment> GetPayment(Guid id)
+        private async Task<BalanceTransaction> GetBalanceTransactionByIdAsync(Guid id)
+        {
+            var balanceTransaction = await _unitOfWork.GetByIdAsync<BalanceTransaction>(id).ConfigureAwait(false);
+
+            if (balanceTransaction == null)
+            {
+                throw new ItemNotFountException("BalanceTransaction", $"Balance transaction with following {nameof(id)} not found");
+            }
+
+            return balanceTransaction;
+        }
+
+        private async Task<PaymentMethod> GetPaymentMethodByIdAsync(Guid id)
+        {
+            var paymentMethod = await _unitOfWork.GetByIdAsync<PaymentMethod>(id).ConfigureAwait(false);
+
+            if (paymentMethod == null)
+            {
+                throw new ItemNotFountException("PaymentMethod", $"PaymentMethod with following {nameof(id)} not found");
+            }
+
+            return paymentMethod;
+        }
+
+        private async Task<Payment> GetPaymentByIdAsync(Guid id)
         {
             var payment = await _unitOfWork.GetByIdAsync<Payment>(id).ConfigureAwait(false);
 
             if (payment == null)
             {
-                throw new ItemNotFountException("User", $"User with following {nameof(payment)} not found");
+                throw new ItemNotFountException("User", $"Payment with following {nameof(id)} not found");
             }
 
             return payment;
@@ -134,6 +206,18 @@ namespace Services.BalanceService.Service
             }
 
             return user;
+        }
+
+        private async Task<Balance> GetUserBalanceByIdAsync(Guid userId)
+        {
+            var balance = _unitOfWork.Find<Balance>(b => b.UserId == userId.ToString());
+            var balances = await balance.ToListAsync();
+            if (!balances.Any())
+            {
+                throw new ItemNotFountException("User", $"User with following {nameof(userId)} not found");
+            }
+
+            return balances.First();
         }
     }
 }

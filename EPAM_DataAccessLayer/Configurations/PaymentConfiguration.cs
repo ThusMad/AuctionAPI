@@ -8,10 +8,14 @@ namespace EPAM_DataAccessLayer.Configurations
     {
         public void Configure(EntityTypeBuilder<Payment> builder)
         {
-            builder.ToTable("Payment")
+            builder.ToTable("Payments")
                 .HasOne(n => n.Sender)
-                .WithMany(n => n.Payments)
+                .WithMany(n => n.OutgoingPayments)
                 .HasForeignKey(n => n.SenderId);
+
+            builder.HasOne(n => n.Recipient)
+                .WithMany(n => n.InnerPayments)
+                .HasForeignKey(n => n.RecipientId);
 
             builder.HasIndex(a => a.Id)
                 .IsUnique();

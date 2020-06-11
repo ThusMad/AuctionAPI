@@ -13,6 +13,9 @@ namespace EPAM_DataAccessLayer.Configurations
                 .WithOne(a => a.DefaultPaymentMethod)
                 .HasForeignKey<DefaultPaymentMethod>(b => b.UserId);
 
+            builder.HasIndex(a => a.Id)
+                .IsUnique();
+
             builder.HasOne(r => r.PaymentMethod)
                 .WithMany()
                 .HasForeignKey(a => a.PaymentMethodId);

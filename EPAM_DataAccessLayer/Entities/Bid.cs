@@ -7,7 +7,7 @@ namespace EPAM_DataAccessLayer.Entities
     public class Bid
     {
         public Guid Id { get; set; }
-        public string PlacerId { get; set; }
+        public string UserId { get; set; }
         public ApplicationUser User { get; set; }
         public Guid AuctionId { get; set; }
         public Auction Auction { get; set; }
@@ -23,7 +23,7 @@ namespace EPAM_DataAccessLayer.Entities
         public Bid(Guid auctionId, Guid userId, decimal price)
         {
             AuctionId = auctionId;
-            PlacerId = userId.ToString();
+            UserId = userId.ToString();
             Price = price;
             Time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         }

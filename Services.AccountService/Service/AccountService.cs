@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -7,8 +8,10 @@ using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Services.AccountService.Interfaces;
 using Services.DataTransferObjects.Objects;
+using Services.Helpers.Utilities;
 using Services.Infrastructure.Exceptions;
 
 namespace Services.AccountService.Service
@@ -39,18 +42,21 @@ namespace Services.AccountService.Service
         /// <exception cref="UserException">Thrown when user already registered or password is incorrect for details <seealso cref="UserException.Message"/> </exception>
         public async Task<ApplicationUserDto> InsertUserAsync(RegistrationDTO registrationDto, IEnumerable<string> roles)
         {
-            if (await GetUserByUsernameAsync(registrationDto.Username).ConfigureAwait(false) != null)
+            if (await _userManager.FindByNameAsync(registrationDto.Username).ConfigureAwait(false) != null)
             {
                 throw new UserException(200, "User with following username already exists");
             }
+
+           
 
             // TODO: use mapper
             var user = new ApplicationUser
             {
                 Email = registrationDto.Email,
                 UserName = registrationDto.Username,
-                RegistrationDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+                RegistrationDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             };
+
             var createResult = await _userManager.CreateAsync(user, registrationDto.Password);
 
             if (!createResult.Succeeded)
@@ -70,6 +76,10 @@ namespace Services.AccountService.Service
                 }
             }
 
+            var balance = await _unitOfWork.InsertAsync(new Balance { UserId = user.Id });
+            await _unitOfWork.InsertAsync(balance);
+            await _unitOfWork.CommitAsync();
+
             return _mapper.Map<ApplicationUser, ApplicationUserDto>(user);
         }
 
@@ -84,7 +94,7 @@ namespace Services.AccountService.Service
         {
             if (username == null || password == null)
             {
-                throw new ArgumentNullException("password or username is null");
+                throw new ArgumentNullException(nameof(password), "Password or username is null");
             }
 
             var user = await GetUserByUsernameAsync(username).ConfigureAwait(false);
@@ -101,12 +111,23 @@ namespace Services.AccountService.Service
         public async Task AttachProfilePicture(Guid userId, string url)
         {
             var user = await GetUserByIdAsync(userId);
+            string prevImagePath = null;
+            if (user.ProfilePicture != null)
+            {
+                prevImagePath = user.ProfilePicture.Url;
+            }
 
-            using var transaction = _unitOfWork.BeginTransaction();
+            using (var transaction = _unitOfWork.BeginTransaction())
+            {
+                transaction.Remove(user.ProfilePicture);
+                user.ProfilePicture = new Media(url);
+                transaction.Update(user);
+            }
 
-            transaction.Remove(user.ProfilePicture);
-            user.ProfilePicture = new Media(url);
-            transaction.Update(user);
+            if (!string.IsNullOrEmpty(prevImagePath))
+            {
+                Utility.RemoveImage(prevImagePath);
+            }
         }
 
         /// <summary>

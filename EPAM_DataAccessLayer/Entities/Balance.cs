@@ -9,6 +9,6 @@ namespace EPAM_DataAccessLayer.Entities
         public decimal PersonalFunds { get; set; }
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
-        public ICollection<BalanceTransactions>? Transactions { get; set; }
+        public ICollection<BalanceTransaction>? Transactions { get; set; }
     }
 }

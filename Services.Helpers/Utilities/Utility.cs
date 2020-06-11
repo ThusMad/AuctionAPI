@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Services.Helpers.Utilities
@@ -18,6 +19,14 @@ namespace Services.Helpers.Utilities
                 sb.Append(b.ToString("X2"));
 
             return sb.ToString();
+        }
+
+        public static void RemoveImage(string dbPath)
+        {
+            var name = Path.GetFileName(dbPath);
+            var localPath = Path.Combine("wwwroot", "images", "name");
+
+            File.Delete(localPath);
         }
     }
 }

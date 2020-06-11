@@ -14,6 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Services.DatabaseExtensions;
+using Services.DataTransferObjects.Extensions;
 
 namespace EPAM_API
 {
@@ -46,8 +47,6 @@ namespace EPAM_API
             services.AddAuctionAuthorization();
 
             services.AddHttpContextAccessor();
-            services.AddTransient<ITokenProvider, TokenProvider>();
-            services.AddTransient<IUserProvider, UserProvider>();
         }
 
 
@@ -80,9 +79,9 @@ namespace EPAM_API
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseTokenInterception();
             app.UseXsrfProtection();
             app.UseTimestampValidation();
-            app.UseTokenInterception();
             app.UseExceptionsHandler();
 
             app.UseAuthentication();
