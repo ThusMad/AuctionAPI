@@ -32,7 +32,7 @@ namespace Services.PaymentService.Service
 
         public async Task DeletePaymentMethodAsync(Guid id, Guid userId)
         {
-            var paymentMethod = await GetPaymentMethodById(id).ConfigureAwait(false);
+            var paymentMethod = await GetPaymentMethodByIdAsync(id).ConfigureAwait(false);
 
             if (paymentMethod.UserId != userId.ToString())
             {
@@ -45,7 +45,7 @@ namespace Services.PaymentService.Service
 
         public async Task<PaymentMethodDTO> GetPaymentMethodAsync(Guid methodId, Guid userId)
         {
-            var paymentMethod = await GetPaymentMethodById(methodId).ConfigureAwait(false);
+            var paymentMethod = await GetPaymentMethodByIdAsync(methodId).ConfigureAwait(false);
 
             if (paymentMethod.UserId != userId.ToString())
             {
@@ -95,7 +95,7 @@ namespace Services.PaymentService.Service
 
         public async Task SetDefaultPaymentMethodAsync(Guid userId, Guid paymentMethodId)
         {
-            var method = await GetPaymentMethodById(paymentMethodId).ConfigureAwait(false);
+            var method = await GetPaymentMethodByIdAsync(paymentMethodId).ConfigureAwait(false);
 
             if (method.UserId != userId.ToString())
             {
@@ -125,7 +125,7 @@ namespace Services.PaymentService.Service
 
         public async Task<PaymentDTO> GetPaymentAsync(Guid id)
         {
-            var payment = await GetPaymentById(id);
+            var payment = await GetPaymentByIdAsync(id);
 
             return _mapper.Map<Payment, PaymentDTO>(payment);
         }
@@ -177,7 +177,7 @@ namespace Services.PaymentService.Service
 
         #endregion
 
-        private async Task<PaymentMethod> GetPaymentMethodById(Guid id)
+        private async Task<PaymentMethod> GetPaymentMethodByIdAsync(Guid id)
         {
             var method = await _unitOfWork.GetByIdAsync<PaymentMethod>(id);
 
@@ -189,7 +189,7 @@ namespace Services.PaymentService.Service
             return method;
         }
 
-        private async Task<Payment> GetPaymentById(Guid id)
+        private async Task<Payment> GetPaymentByIdAsync(Guid id)
         {
             var payment = await _unitOfWork.GetByIdAsync<Payment>(id);
 

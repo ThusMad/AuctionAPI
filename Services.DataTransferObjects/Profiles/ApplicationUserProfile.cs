@@ -17,7 +17,8 @@ namespace Services.DataTransferObjects.Profiles
 
             CreateMap<ApplicationUser, ApplicationUserDto>()
                 .ForMember(dto => dto.Email, opt => opt.MapFrom(src => src.Email))
-                .ForMember(dto => dto.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate));
+                .ForMember(dto => dto.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
+                .ForMember(dto => dto.Balance, opt => opt.MapFrom(src => src.Balance));
 
             CreateMap<ApplicationUserPatchModel, ApplicationUser>().MapOnlyIfChanged();
         }

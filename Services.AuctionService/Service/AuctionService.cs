@@ -101,14 +101,14 @@ namespace Services.AuctionService.Service
         /// <exception cref="ItemNotFountException">throws when entity with provided id not present in database</exception>
         public async Task<AuctionDTO> GetByIdAsync(Guid id)
         {
-            var auction = await GetAuction(id).ConfigureAwait(false);
+            var auction = await GetAuctionAsync(id).ConfigureAwait(false);
 
             return _mapper.Map<Auction, AuctionDTO>(auction);
         }
 
-        public async Task AttachMedia(Guid auctionId, Guid userId, string[] mediaUrls)
+        public async Task AttachMediaAsync(Guid auctionId, Guid userId, string[] mediaUrls)
         {
-            var auction = await GetAuction(auctionId);
+            var auction = await GetAuctionAsync(auctionId);
 
             if (auction.UserId != userId.ToString())
             {
@@ -139,7 +139,7 @@ namespace Services.AuctionService.Service
         /// <returns></returns>
         public async Task RemoveAuctionAsync(Guid id)
         {
-            var auction = await GetAuction(id);
+            var auction = await GetAuctionAsync(id);
 
             if (auction.StartTime <= DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
@@ -159,7 +159,7 @@ namespace Services.AuctionService.Service
         /// <returns></returns>
         public async Task<BidDTO> InsertBidAsync(Guid auctionId, Guid userId, decimal price)
         {
-            var auction = await GetAuction(auctionId).ConfigureAwait(false);
+            var auction = await GetAuctionAsync(auctionId).ConfigureAwait(false);
 
             // TODO: Implement own exception
             if(auction.StartTime > DateTimeOffset.UtcNow.ToUnixTimeSeconds() && auction.EndTime < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
@@ -204,7 +204,7 @@ namespace Services.AuctionService.Service
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        private async Task<Auction> GetAuction(Guid id)
+        private async Task<Auction> GetAuctionAsync(Guid id)
         {
             var auctions = await _unitOfWork.GetAll<Auction>()
                 .Where(a => a.Id == id)

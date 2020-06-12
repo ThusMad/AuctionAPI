@@ -47,8 +47,6 @@ namespace Services.AccountService.Service
                 throw new UserException(200, "User with following username already exists");
             }
 
-           
-
             // TODO: use mapper
             var user = new ApplicationUser
             {
@@ -76,7 +74,7 @@ namespace Services.AccountService.Service
                 }
             }
 
-            var balance = await _unitOfWork.InsertAsync(new Balance { UserId = user.Id });
+            var balance = await _unitOfWork.InsertAsync(new Balance { PersonalFunds = 0, User = user});
             await _unitOfWork.InsertAsync(balance);
             await _unitOfWork.CommitAsync();
 
@@ -98,7 +96,6 @@ namespace Services.AccountService.Service
             }
 
             var user = await GetUserByUsernameAsync(username).ConfigureAwait(false);
-
             return await _userManager.CheckPasswordAsync(user, password);
         }
 
@@ -108,7 +105,7 @@ namespace Services.AccountService.Service
         /// <param name="userId"></param>
         /// <param name="url"></param>
         /// <returns></returns>
-        public async Task AttachProfilePicture(Guid userId, string url)
+        public async Task AttachProfilePictureAsync(Guid userId, string url)
         {
             var user = await GetUserByIdAsync(userId);
             string prevImagePath = null;
@@ -183,7 +180,9 @@ namespace Services.AccountService.Service
 
         private async Task<ApplicationUser> GetUserByIdAsync(Guid id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await _userManager.Users
+                .Include(x => x.Balance)
+                .SingleAsync(i => i.Id == id.ToString());
 
             if (user == null)
             {
@@ -195,7 +194,9 @@ namespace Services.AccountService.Service
 
         private async Task<ApplicationUser> GetUserByUsernameAsync(string username)
         {
-            var user = await _userManager.FindByNameAsync(username);
+            var user = await _userManager.Users
+                .Include(x => x.Balance)
+                .SingleAsync(i => i.NormalizedUserName == username.ToUpper()); ;
 
             if (user == null)
             {

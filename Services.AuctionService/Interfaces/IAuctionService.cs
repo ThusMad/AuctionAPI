@@ -45,7 +45,7 @@ namespace Services.AuctionService.Interfaces
         /// <returns><see cref="AuctionDTO"/> instance</returns>
         Task<AuctionDTO> GetByIdAsync(Guid id);
 
-        Task AttachMedia(Guid auctionId, Guid userId, string[] mediaUrls);
+        Task AttachMediaAsync(Guid auctionId, Guid userId, string[] mediaUrls);
 
         /// <summary>
         /// 

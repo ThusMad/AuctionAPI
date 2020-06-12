@@ -96,7 +96,7 @@ namespace EPAM_API.Controllers
 
             var userId = _tokenProvider.GetUserIdFromExpiredToken(token);
 
-            if (!_tokenService.CheckTokenIdentity(userId, refreshToken))
+            if (!await _tokenService.CheckTokenIdentityAsync(userId, refreshToken))
             {
                 return BadRequest("Refresh token for current user don't match with stored");
             }

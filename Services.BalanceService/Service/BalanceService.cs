@@ -32,6 +32,25 @@ namespace Services.BalanceService.Service
             _mapper = mapper;
         }
 
+        public async Task<BalanceDTO> GetUserBalanceAsync(Guid userId)
+        {
+            var balance = await GetBalanceByUserIdAsync(userId);
+
+            return _mapper.Map<Balance, BalanceDTO>(balance);
+        }
+
+        public async Task<BalanceDTO> GetBalanceByIdAsync(Guid balanceId, Guid userId)
+        {
+            var balance = await GetBalanceByIdAsync(balanceId);
+
+            if (balance.UserId != userId.ToString())
+            {
+                throw new AccessViolationException("Unable to access this transaction");
+            }
+
+            return _mapper.Map<Balance, BalanceDTO>(balance);
+        }
+
         public async Task ProceedPaymentAsync(Guid userId, Guid paymentId)
         {
             var payment = await GetPaymentByIdAsync(paymentId);
@@ -67,7 +86,7 @@ namespace Services.BalanceService.Service
         public async Task RefillBalanceAsync(Guid userId, Guid paymentMethodId, decimal amount)
         {
             var paymentMethod = await GetPaymentMethodByIdAsync(paymentMethodId);
-            var balance = await GetUserBalanceByIdAsync(userId);
+            var balance = await GetBalanceByUserIdAsync(userId);
 
             using var transaction = _unitOfWork.BeginTransaction();
 
@@ -80,7 +99,7 @@ namespace Services.BalanceService.Service
         public async Task WithdrawalBalanceAsync(Guid userId, Guid paymentMethodId, decimal amount)
         {
             var paymentMethod = await GetPaymentMethodByIdAsync(paymentMethodId);
-            var balance = await GetUserBalanceByIdAsync(userId);
+            var balance = await GetBalanceByUserIdAsync(userId);
 
             using var transaction = _unitOfWork.BeginTransaction();
 
@@ -92,7 +111,7 @@ namespace Services.BalanceService.Service
 
         public async Task WithdrawalBalanceAsync(Guid userId, string cardNumber, decimal amount)
         {
-            var balance = await GetUserBalanceByIdAsync(userId);
+            var balance = await GetBalanceByUserIdAsync(userId);
 
             using var transaction = _unitOfWork.BeginTransaction();
 
@@ -105,7 +124,7 @@ namespace Services.BalanceService.Service
         public async Task<BalanceTransactionDTO> GetBalanceTransactionAsync(Guid userId, Guid transactionId)
         {
             var transaction = await GetBalanceTransactionByIdAsync(transactionId);
-            var senderBalance = await GetUserBalanceByIdAsync(transaction.BalanceId);
+            var senderBalance = await GetBalanceByIdAsync(transaction.BalanceId);
 
             if (senderBalance.UserId != userId.ToString())
             {
@@ -198,7 +217,9 @@ namespace Services.BalanceService.Service
 
         private async Task<ApplicationUser> GetUserByIdAsync(Guid id)
         {
-            var user = await _userManager.FindByIdAsync(id.ToString());
+            var user = await _userManager.Users
+                .Include(u => u.Balance)
+                .SingleAsync(u => u.Id == id.ToString());
 
             if (user == null)
             {
@@ -208,7 +229,19 @@ namespace Services.BalanceService.Service
             return user;
         }
 
-        private async Task<Balance> GetUserBalanceByIdAsync(Guid userId)
+        private async Task<Balance> GetBalanceByIdAsync(Guid balanceId)
+        {
+            var balance = _unitOfWork.Find<Balance>(b => b.Id == balanceId);
+            var balances = await balance.ToListAsync();
+            if (!balances.Any())
+            {
+                throw new ItemNotFountException("Balance", $"Balance with following {nameof(balanceId)} not found");
+            }
+
+            return balances.First();
+        }
+
+        private async Task<Balance> GetBalanceByUserIdAsync(Guid userId)
         {
             var balance = _unitOfWork.Find<Balance>(b => b.UserId == userId.ToString());
             var balances = await balance.ToListAsync();

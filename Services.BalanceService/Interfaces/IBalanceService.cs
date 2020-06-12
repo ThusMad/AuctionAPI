@@ -10,6 +10,8 @@ namespace Services.BalanceService.Interfaces
     /// </summary>
     public interface IBalanceService
     {
+        Task<BalanceDTO> GetUserBalanceAsync(Guid userId);
+        Task<BalanceDTO> GetBalanceByIdAsync(Guid balanceId, Guid userId);
         Task ProceedPaymentAsync(Guid userId, Guid paymentId);
         Task RefillBalanceAsync(Guid userId, Guid paymentMethodId, decimal amount);
         Task WithdrawalBalanceAsync(Guid userId, Guid paymentMethod, decimal amount);

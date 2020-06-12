@@ -22,6 +22,6 @@ namespace Services.AccountService.Interfaces
         Task UpdateUserAsync(Guid id, ApplicationUserPatchModel applicationUserDto);
         Task RemoveUserAsync(Guid id);
         Task<bool> IsValidUsernameAndPasswordCombinationAsync(string? username, string? password);
-        Task AttachProfilePicture(Guid userId, string url);
+        Task AttachProfilePictureAsync(Guid userId, string url);
     }
 }

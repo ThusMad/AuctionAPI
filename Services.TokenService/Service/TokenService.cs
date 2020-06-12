@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Services.Infrastructure.Exceptions;
 using Services.TokenService.Interfaces;
 
@@ -24,14 +25,14 @@ namespace Services.TokenService.Service
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
 
-            await UpdateToken(user, refreshToken);
+            await UpdateTokenAsync(user, refreshToken);
         }
 
         public async Task UpdateRefreshTokenAsync(string username, string refreshToken, int lifetime = 5)
         {
             var user = await _userManager.FindByNameAsync(username);
 
-            await UpdateToken(user, refreshToken).ConfigureAwait(false);
+            await UpdateTokenAsync(user, refreshToken).ConfigureAwait(false);
         }
 
         public async Task RemoveTokenFromUserAsync(Guid userId)
@@ -45,30 +46,29 @@ namespace Services.TokenService.Service
             }
         }
 
-        public bool CheckTokenIdentity(Guid userId, string refreshToken)
+        public async Task<bool> CheckTokenIdentityAsync(Guid userId, string refreshToken)
         {
             if (string.IsNullOrEmpty(userId.ToString()))
             {
                 throw new ArgumentNullException(nameof(userId), "id was null");
             }
 
-            var refreshTokens = _unitOfWork.Repository<RefreshToken>().Find(t => t.Token == refreshToken).AsEnumerable();
-            var tokens = refreshTokens as RefreshToken[] ?? refreshTokens.ToArray();
+            var refreshTokens = await _unitOfWork.Find<RefreshToken>(t => t.Token == refreshToken).ToListAsync();
 
-            if (!tokens.Any())
+            if (!refreshTokens.Any())
             {
                 throw new ItemNotFountException("User", $"User with following {nameof(refreshToken)} not found");
             }
 
-            if (tokens.First().TokenExpiration < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
+            if (refreshTokens.First().TokenExpiration < DateTimeOffset.UtcNow.ToUnixTimeSeconds())
             {
-                throw new RefreshTokenExpireException(tokens.First(), "Current token expired");
+                throw new RefreshTokenExpireException(refreshTokens.First(), "Current token expired");
             }
 
-            return tokens.First().UserId == userId.ToString();
+            return refreshTokens.First().UserId == userId.ToString();
         }
 
-        private async Task UpdateToken(ApplicationUser user, string newRefreshToken)
+        private async Task UpdateTokenAsync(ApplicationUser user, string newRefreshToken)
         {
             var refreshTokens = _unitOfWork.Find<RefreshToken>(a => a.UserId == user.Id).AsEnumerable();
             var tokens = refreshTokens as RefreshToken[] ??

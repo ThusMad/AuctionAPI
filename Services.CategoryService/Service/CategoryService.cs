@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AutoMapper;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Services.CategoryService.Interfaces;
 using Services.DataTransferObjects.Objects;
 using Services.Infrastructure.Exceptions;
@@ -22,15 +23,15 @@ namespace Services.CategoryService.Service
             _unitOfWork = unitOfWork;
         }
 
-        public IEnumerable<AuctionCategoryDto> GetCategories(int? limit, int? offset)
+        public async Task<IEnumerable<AuctionCategoryDto>> GetCategoriesAsync(int? limit, int? offset)
         {
-            var categories = _unitOfWork.GetAll<Category>().AsEnumerable();
+            var categories = await _unitOfWork.GetAll<Category>().ToListAsync();
             return _mapper.Map<IEnumerable<Category>, IEnumerable<AuctionCategoryDto>>(categories);
         }
 
-        public AuctionCategoryDto GetCategory(Guid id)
+        public async Task<AuctionCategoryDto> GetCategoryAsync(Guid id)
         {
-            var categories = _unitOfWork.GetById<Category>(id);
+            var categories = await _unitOfWork.GetByIdAsync<Category>(id);
             return _mapper.Map<Category, AuctionCategoryDto>(categories);
         }
 

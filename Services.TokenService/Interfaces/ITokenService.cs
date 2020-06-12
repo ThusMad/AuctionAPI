@@ -8,6 +8,6 @@ namespace Services.TokenService.Interfaces
         Task UpdateRefreshTokenAsync(Guid userId, string refreshToken, int lifetime = 5);
         Task UpdateRefreshTokenAsync(string username, string refreshToken, int lifetime = 5);
         Task RemoveTokenFromUserAsync(Guid userId);
-        bool CheckTokenIdentity(Guid userId, string refreshToken);
+        Task<bool> CheckTokenIdentityAsync(Guid userId, string refreshToken);
     }
 }

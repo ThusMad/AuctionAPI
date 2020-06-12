@@ -1,10 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Reflection;
-using System.Security.Claims;
-using System.Threading.Tasks;
-using AutoMapper;
-using EPAM_API.Helpers;
+﻿using EPAM_API.Helpers;
 using EPAM_API.Services;
 using EPAM_API.Services.Interfaces;
 using EPAM_DataAccessLayer.UnitOfWork;
@@ -20,12 +14,17 @@ using Services.AccountService.Interfaces;
 using Services.AccountService.Service;
 using Services.AuctionService.Interfaces;
 using Services.AuctionService.Service;
+using Services.BalanceService.Interfaces;
+using Services.BalanceService.Service;
 using Services.CategoryService.Interfaces;
 using Services.CategoryService.Service;
 using Services.TokenService.Interfaces;
 using Services.TokenService.Service;
 using Services.UploadService.Interfaces;
 using Services.UploadService.Service;
+using System;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace EPAM_API.Extensions
 {
@@ -41,6 +40,7 @@ namespace EPAM_API.Extensions
             services.AddSingleton<IUploadService, UploadService>();
             services.AddTransient<ITokenProvider, TokenProvider>();
             services.AddTransient<IUserProvider, UserProvider>();
+            services.AddTransient<IBalanceService, BalanceService>();
         }
 
         public static void AddAuctionAuthentication(this IServiceCollection services, byte[] securityKey)

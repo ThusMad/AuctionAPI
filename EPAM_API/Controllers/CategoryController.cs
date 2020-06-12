@@ -22,9 +22,9 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetCategory(Guid id)
+        public async Task<IActionResult> GetCategory(Guid id)
         {
-            var category = _categoryService.GetCategory(id);
+            var category = await _categoryService.GetCategoryAsync(id);
 
             return Ok(JsonSerializer.Serialize(category));
         }
@@ -58,9 +58,9 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet, Route("getAll")]
-        public IActionResult GetCategories(int? limit, int? offset)
+        public async Task<IActionResult> GetCategories(int? limit, int? offset)
         {
-            var categories = _categoryService.GetCategories(limit, offset);
+            var categories = await _categoryService.GetCategoriesAsync(limit, offset);
 
             return Ok(JsonSerializer.Serialize(categories));
         }

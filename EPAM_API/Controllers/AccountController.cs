@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Services.AccountService.Interfaces;
 using Services.DataTransferObjects.Objects;
 using Services.Infrastructure.Exceptions;
+using Services.TokenService.Interfaces;
 using Services.UploadService.Interfaces;
 
 namespace EPAM_API.Controllers
@@ -21,14 +22,16 @@ namespace EPAM_API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
+        private readonly ITokenService _tokenService;
         private readonly IUploadService _uploadService;
         private readonly IUserProvider _userProvider;
         private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IAccountService accountService, IUploadService uploadService, IUserProvider userProvider,  ILogger<AccountController> logger)
+        public AccountController(IAccountService accountService, ITokenService tokenService, IUploadService uploadService, IUserProvider userProvider,  ILogger<AccountController> logger)
         {
             _logger = logger;
             _accountService = accountService;
+            _tokenService = tokenService;
             _uploadService = uploadService;
             _userProvider = userProvider;
 
@@ -107,7 +110,15 @@ namespace EPAM_API.Controllers
         [HttpDelete, Route("deleteAccount")]
         public async Task<IActionResult> Delete()
         {
-            await _accountService.RemoveUserAsync(_userProvider.GetUserId());
+            var userId = _userProvider.GetUserId();
+            await _tokenService.RemoveTokenFromUserAsync(userId);
+
+            HttpContext.Response.Cookies.Delete(".AspNetCore.Application.Id");
+            HttpContext.Response.Cookies.Delete(".AspNetCore.Application.Cre");
+
+            _logger.Log(LogLevel.Debug, $"user {userId} logged out");
+
+            await _accountService.RemoveUserAsync(userId);
 
             return Ok();
         }
@@ -130,7 +141,7 @@ namespace EPAM_API.Controllers
 
             try
             {
-                await _accountService.AttachProfilePicture(userId, imagePath);
+                await _accountService.AttachProfilePictureAsync(userId, imagePath);
             }
             catch (Exception)
             {

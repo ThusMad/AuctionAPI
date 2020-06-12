@@ -19,6 +19,7 @@
     <ProjectReference Include="..\EPAM_SocketSlot\EPAM_SocketSlot.csproj" />
     <ProjectReference Include="..\Services.AccountService\Services.AccountService.csproj" />
     <ProjectReference Include="..\Services.AuctionService\Services.AuctionService.csproj" />
+    <ProjectReference Include="..\Services.BalanceService\Services.BalanceService.csproj" />
     <ProjectReference Include="..\Services.CategoryService\Services.CategoryService.csproj" />
     <ProjectReference Include="..\Services.DatabaseExtensions\Services.DatabaseExtensions.csproj" />
     <ProjectReference Include="..\Services.PaymentService\Services.PaymentService.csproj" />
