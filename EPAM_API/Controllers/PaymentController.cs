@@ -53,6 +53,15 @@ namespace EPAM_API.Controllers
             return Ok();
         }
 
+        [HttpGet, Route("statistic")]
+        public async Task<IActionResult> GetPaymentStatistic()
+        {
+            var userId = _userProvider.GetUserId();
+            var statistic = await _paymentService.GetPaymentStatisticAsync(userId);
+
+            return Ok(JsonSerializer.Serialize(statistic));
+        }
+
         #region Methods
 
         [HttpPost, Route("methods/create")]
@@ -79,9 +88,9 @@ namespace EPAM_API.Controllers
         }
 
         [HttpGet, Route("methods/get")]
-        public async Task<IActionResult> GetPaymentMethods(Guid id)
+        public async Task<IActionResult> GetPaymentMethod(Guid methodId)
         {
-            var method = await _paymentService.GetPaymentMethodAsync(id, _userProvider.GetUserId());
+            var method = await _paymentService.GetPaymentMethodAsync(methodId, _userProvider.GetUserId());
             return Ok(JsonSerializer.Serialize(method));
         }
 
@@ -93,7 +102,7 @@ namespace EPAM_API.Controllers
         }
 
         [HttpGet, Route("methods/getAll")]
-        public async Task<IActionResult> GetPaymentMethods(int? limit, int? offset)
+        public async Task<IActionResult> GetPaymentMethods()
         {
             var methods = await _paymentService.GetPaymentMethodsAsync(_userProvider.GetUserId());
             return Ok(JsonSerializer.Serialize(methods));

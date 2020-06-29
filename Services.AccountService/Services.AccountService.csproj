@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EPAM_BusinessLogicLayer\EPAM_BusinessLogicLayer.csproj" />
     <ProjectReference Include="..\Services.DataTransferObjects\Services.DataTransferObjects.csproj" />
     <ProjectReference Include="..\Services.Infrastructure\Services.Infrastructure.csproj" />
   </ItemGroup>

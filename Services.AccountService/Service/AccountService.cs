@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using EPAM_BusinessLogicLayer.BusinessModels;
 using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
@@ -65,7 +66,7 @@ namespace Services.AccountService.Service
 
             foreach (var role in roles)
             {
-                var addRoleResult = await _userManager.AddToRoleAsync(user, role);
+                var addRoleResult = await _userManager.AddToRoleAsync(user, role.ToUpperInvariant());
 
                 if (!addRoleResult.Succeeded)
                 {
@@ -116,7 +117,10 @@ namespace Services.AccountService.Service
 
             using (var transaction = _unitOfWork.BeginTransaction())
             {
-                transaction.Remove(user.ProfilePicture);
+                if (prevImagePath != null)
+                {
+                    transaction.Remove(user.ProfilePicture);
+                }
                 user.ProfilePicture = new Media(url);
                 transaction.Update(user);
             }
@@ -145,6 +149,31 @@ namespace Services.AccountService.Service
             var user = await GetUserByIdAsync(id);
 
             return _mapper.Map<ApplicationUser, TUserDto> (user);
+        }
+
+        public async Task<decimal> GetUserFeeAsync(Guid id)
+        {
+            var user = await GetUserByIdAsync(id);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            if (roles.Contains(Roles.Plus))
+            {
+                return 4;
+            }
+            if (roles.Contains(Roles.Premium))
+            {
+                return 2.5M;
+            }
+
+            return 5;
+        }
+
+        public async Task<string> GetUserRoleAsync(Guid id)
+        {
+            var user = await GetUserByIdAsync(id);
+            var roles = await _userManager.GetRolesAsync(user);
+
+            return roles.First();
         }
 
         /// <summary>
@@ -182,6 +211,7 @@ namespace Services.AccountService.Service
         {
             var user = await _userManager.Users
                 .Include(x => x.Balance)
+                .Include(x => x.ProfilePicture)
                 .SingleAsync(i => i.Id == id.ToString());
 
             if (user == null)
@@ -196,7 +226,8 @@ namespace Services.AccountService.Service
         {
             var user = await _userManager.Users
                 .Include(x => x.Balance)
-                .SingleAsync(i => i.NormalizedUserName == username.ToUpper()); ;
+                .Include(x => x.ProfilePicture)
+                .SingleAsync(i => i.NormalizedUserName == username.ToUpperInvariant());
 
             if (user == null)
             {

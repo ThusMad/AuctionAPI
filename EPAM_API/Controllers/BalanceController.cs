@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Text.Json;
+using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Services.BalanceService.Interfaces;
 
 namespace EPAM_API.Controllers
@@ -23,8 +26,20 @@ namespace EPAM_API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
+            var userId = _userProvider.GetUserId();
+            var balance = await _balanceService.GetUserBalanceAsync(userId);
 
-            return null;
+            return Ok(JsonSerializer.Serialize(balance));
+        }
+
+        [Authorize]
+        [HttpGet, Route("get")]
+        public async Task<IActionResult> GetById(Guid balanceId)
+        {
+            var userId = _userProvider.GetUserId();
+            var balance = await _balanceService.GetBalanceByIdAsync(balanceId, userId);
+
+            return Ok(JsonSerializer.Serialize(balance));
         }
     }
 }

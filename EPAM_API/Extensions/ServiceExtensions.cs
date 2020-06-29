@@ -25,6 +25,8 @@ using Services.UploadService.Service;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Services.PaymentService.Interfaces;
+using Services.PaymentService.Service;
 
 namespace EPAM_API.Extensions
 {
@@ -38,9 +40,11 @@ namespace EPAM_API.Extensions
             services.AddTransient<IAuctionService, AuctionService>();
             services.AddTransient<ICategoryService, CategoryService>();
             services.AddSingleton<IUploadService, UploadService>();
+            services.AddTransient<IBalanceService, BalanceService>();
+            services.AddTransient<IPaymentService, PaymentService>();
+
             services.AddTransient<ITokenProvider, TokenProvider>();
             services.AddTransient<IUserProvider, UserProvider>();
-            services.AddTransient<IBalanceService, BalanceService>();
         }
 
         public static void AddAuctionAuthentication(this IServiceCollection services, byte[] securityKey)
@@ -61,8 +65,7 @@ namespace EPAM_API.Extensions
                         IssuerSigningKey = new SymmetricSecurityKey(securityKey),
                         ValidateIssuer = false,
                         ValidateAudience = false,
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromMinutes(5)
+                        ValidateLifetime = true
                     };
                     options.Events = new JwtBearerEvents
                     {

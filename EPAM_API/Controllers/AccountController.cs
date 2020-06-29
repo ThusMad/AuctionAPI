@@ -17,7 +17,6 @@ using Services.UploadService.Interfaces;
 namespace EPAM_API.Controllers
 {
     [Route("api/account")]
-    [Produces("application/json")]
     [ApiController]
     public class AccountController : ControllerBase
     {
@@ -83,6 +82,26 @@ namespace EPAM_API.Controllers
             return Ok(JsonSerializer.Serialize(user));
         }
 
+        [Authorize]
+        [HttpGet, Route("fee")]
+        public async Task<IActionResult> GetFee()
+        {
+            var id = _userProvider.GetUserId();
+            var fee = await _accountService.GetUserFeeAsync(id);
+
+            return Ok(JsonSerializer.Serialize(fee));
+        }
+
+        [Authorize]
+        [HttpGet, Route("role")]
+        public async Task<IActionResult> GetRole()
+        {
+            var id = _userProvider.GetUserId();
+            var role = await _accountService.GetUserRoleAsync(id);
+
+            return Ok(JsonSerializer.Serialize(role));
+        }
+
         [AllowAnonymous]
         [HttpGet, Route("preview")]
         public async Task<IActionResult> GetPreview(Guid userId)
@@ -132,9 +151,9 @@ namespace EPAM_API.Controllers
             return Ok(JsonSerializer.Serialize(users));
         }
 
-        [HttpPost("addProfilePicture"), DisableRequestSizeLimit]
         [Authorize]
-        public async Task<IActionResult> UpdateProfilePicture(IFormFile file)
+        [HttpPost, Route("addProfilePicture"), DisableRequestSizeLimit]
+        public async Task<IActionResult> AddProfilePicture(IFormFile file)
         {
             var userId = _userProvider.GetUserId();
             var imagePath = await _uploadService.UploadAsync(file);

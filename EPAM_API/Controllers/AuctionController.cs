@@ -19,11 +19,11 @@ namespace EPAM_API.Controllers
         private readonly ISlotStorage _slotStorage;
         private readonly IUserProvider _userProvider;
 
-        public AuctionController(IUserProvider userProvider, IAuctionService auctionService, ISlotStorage slotStorage)
+        public AuctionController(IUserProvider userProvider, IAuctionService auctionService)
         {
             _userProvider = userProvider;
             _auctionService = auctionService;
-            _slotStorage = slotStorage;
+            //_slotStorage = slotStorage;
         }
 
         [Authorize]
@@ -42,9 +42,9 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
-            var auction = _auctionService.GetByIdAsync(id);
+            var auction = await _auctionService.GetByIdAsync(id);
 
             return Ok(JsonSerializer.Serialize(auction));
         }
@@ -54,6 +54,16 @@ namespace EPAM_API.Controllers
         public async Task<IActionResult> GetAll(string? filters, int? limit, int? offset)
         {
             var auctions = await _auctionService.GetAllAsync(filters, limit, offset);
+
+            return Ok(JsonSerializer.Serialize(auctions));
+        }
+
+        [Authorize]
+        [HttpGet, Route("my")]
+        public async Task<IActionResult> GetMyAuctions(int? limit, int? offset)
+        {
+            var userId = _userProvider.GetUserId();
+            var auctions = await _auctionService.GetAllAsync($"userId={userId}", limit, offset);
 
             return Ok(JsonSerializer.Serialize(auctions));
         }

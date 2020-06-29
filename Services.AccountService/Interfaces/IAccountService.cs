@@ -18,6 +18,8 @@ namespace Services.AccountService.Interfaces
         /// <param name="id">User id that must be found</param>
         /// <returns><seealso cref="TUserDto"/></returns>
         Task<TUserDto> GetUserByIdAsync<TUserDto>(Guid id);
+        Task<decimal> GetUserFeeAsync(Guid id);
+        Task<string> GetUserRoleAsync(Guid id);
         Task<IEnumerable<ApplicationUserDto>> GetAllUsersAsync(int? limit, int? offset);
         Task UpdateUserAsync(Guid id, ApplicationUserPatchModel applicationUserDto);
         Task RemoveUserAsync(Guid id);

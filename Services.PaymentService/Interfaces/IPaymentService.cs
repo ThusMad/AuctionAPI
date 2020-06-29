@@ -7,7 +7,8 @@ namespace Services.PaymentService.Interfaces
 {
     public interface IPaymentService
     {
-        Task DeletePaymentMethodAsync(Guid id, Guid userId);
+        Task<PaymentStatisticDTO> GetPaymentStatisticAsync(Guid userId);
+        Task DeletePaymentMethodAsync(Guid paymentMethodId, Guid userId);
         Task<IEnumerable<PaymentMethodDTO>> GetPaymentMethodsAsync(Guid userId);
         Task<PaymentMethodDTO> GetPaymentMethodAsync(Guid methodId, Guid userId);
         Task<PaymentMethodDTO> GetDefaultPaymentMethodAsync(Guid userId);

@@ -16,6 +16,8 @@ namespace Services.DataTransferObjects.Objects
         public string? FirstName { get; set; }
         [JsonPropertyName("lastName")]
         public string? LastName { get; set; }
+        [JsonPropertyName("profilePicture")]
+        public string? ProfilePicture { get; set; }
         [JsonPropertyName("bages")]
         public ICollection<Bage> Bages { get; set; }
     }

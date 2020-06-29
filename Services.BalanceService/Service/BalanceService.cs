@@ -61,7 +61,7 @@ namespace Services.BalanceService.Service
                 throw new AccessViolationException("Unable to access this payment");
             }
 
-            if (payment.Status == PaymentStatus.Confirmed)
+            if (payment.Status == PaymentStatus.Completed)
             {
                 throw new PaymentAlreadyCompletedException("Payment with following userId already completed", paymentId);
             }

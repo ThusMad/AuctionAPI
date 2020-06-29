@@ -7,6 +7,7 @@ using EPAM_DataAccessLayer.Entities;
 using EPAM_DataAccessLayer.Enums;
 using EPAM_DataAccessLayer.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Services.AuctionService.Extensions;
 using Services.AuctionService.Interfaces;
 using Services.DataTransferObjects.Objects;
@@ -29,14 +30,17 @@ namespace Services.AuctionService.Service
         /// </summary>
         private readonly IUnitOfWork _unitOfWork;
 
+        private readonly ILogger _logger;
+
         /// <summary>
         /// Constructor that create <seealso cref="AuctionService"/> instance
         /// </summary>
         /// <param name="mapper">Mapper <seealso cref="IMapper"/></param>
         /// <param name="unitOfWork">Unit of work <seealso cref="IUnitOfWork"/></param>
-        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork)
+        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork, ILoggerFactory loggerFactory)
         {
             _unitOfWork = unitOfWork;
+            _logger = loggerFactory.CreateLogger(typeof(AuctionService));
             _mapper = mapper;
         }
 
@@ -50,9 +54,9 @@ namespace Services.AuctionService.Service
         /// <exception cref="ValidationException">Throws when data provided in <see cref="AuctionDTO"/> not matching</exception>
         public async Task<AuctionDTO> InsertAuctionAsync(AuctionDTO auctionDto, Guid userId, string userRole)
         {
-            if (auctionDto.StartTime < auctionDto.EndTime && auctionDto.AuctionType == AuctionType.Normal)
+            if (auctionDto.StartTime > auctionDto.EndTime && auctionDto.AuctionType == AuctionType.Normal)
             {
-                throw new ValidationException($"{nameof(auctionDto.EndTime)} can't be ahead of the {nameof(auctionDto.StartTime)}", nameof(auctionDto));
+                throw new ValidationException($"{nameof(auctionDto.StartTime)} can't be ahead of the {nameof(auctionDto.EndTime)}", nameof(auctionDto));
             }
 
             var auction = _mapper.Map<AuctionDTO, Auction>(auctionDto,opt =>
@@ -79,18 +83,19 @@ namespace Services.AuctionService.Service
             var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
             var offsetVal = offset ?? 0;
 
-            var auctionQuery = _unitOfWork.GetAll<Auction>(limitVal, offsetVal)
+            var auctionQuery = _unitOfWork.GetAll<Auction>()
                 .Include(a => a.Images)
                 .Include(a => a.Creator)
                 .Include(a => a.Categories)
                 .ThenInclude(x => x.Category);
 
-            if (filters != null)
-            {
-                auctionQuery.ApplyFilters(filters);
-            }
-            
-            return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(await auctionQuery.ToListAsync());
+            if (filters == null)
+                return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(await auctionQuery.Skip(offsetVal).Take(limitVal).ToListAsync());
+
+            var filtered = auctionQuery.ApplyFilters(filters);
+            _logger.LogInformation(filtered.ToSql());
+            return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(await filtered.Skip(offsetVal).Take(limitVal).ToListAsync());
+
         }
 
         /// <summary>

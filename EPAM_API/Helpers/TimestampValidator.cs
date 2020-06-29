@@ -4,7 +4,7 @@ namespace EPAM_API.Helpers
 {
     public static class TimestampValidator
     {
-        private const int DefaultWindow = 100;
+        private const int DefaultWindow = 1000;
 
         public static bool Validate(long timestamp, int? recvWindow)
         {
