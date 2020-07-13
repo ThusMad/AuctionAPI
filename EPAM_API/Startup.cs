@@ -58,14 +58,14 @@ namespace EPAM_API
             }
 
             app.UseCors(x => x
-                .WithOrigins("http://localhost:4200")
+                .WithOrigins("https://192.168.1.102:4200", "https://192.168.1.102", "http://192.168.1.102:4200", "http://192.168.1.102")
                 .AllowCredentials()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 
             app.UseCookiePolicy(new CookiePolicyOptions
             {
-                MinimumSameSitePolicy = SameSiteMode.Strict,
+                MinimumSameSitePolicy = SameSiteMode.None,
                 HttpOnly = HttpOnlyPolicy.Always,
                 Secure = CookieSecurePolicy.Always
             });
@@ -79,10 +79,10 @@ namespace EPAM_API
             app.UseHttpsRedirection();
             app.UseRouting();
 
+            app.UseExceptionsHandler();
             app.UseTokenInterception();
             app.UseXsrfProtection();
             app.UseTimestampValidation();
-            app.UseExceptionsHandler();
 
             app.UseAuthentication();
             app.UseAuthorization();

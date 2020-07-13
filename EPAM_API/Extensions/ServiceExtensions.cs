@@ -25,6 +25,8 @@ using Services.UploadService.Service;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using EPAM_SocketSlot;
+using EPAM_SocketSlot.Interfaces;
 using Services.PaymentService.Interfaces;
 using Services.PaymentService.Service;
 
@@ -45,6 +47,8 @@ namespace EPAM_API.Extensions
 
             services.AddTransient<ITokenProvider, TokenProvider>();
             services.AddTransient<IUserProvider, UserProvider>();
+
+            services.AddSingleton<ISlotStorage, SlotStorage>();
         }
 
         public static void AddAuctionAuthentication(this IServiceCollection services, byte[] securityKey)

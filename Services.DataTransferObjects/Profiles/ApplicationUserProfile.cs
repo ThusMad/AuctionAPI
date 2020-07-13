@@ -22,6 +22,9 @@ namespace Services.DataTransferObjects.Profiles
                 .ForMember(dto => dto.RegistrationDate, opt => opt.MapFrom(src => src.RegistrationDate))
                 .ForMember(dto => dto.Balance, opt => opt.MapFrom(src => src.Balance));
 
+            CreateMap<ApplicationUser, ParticipantDTO>()
+                .ForMember(dto => dto.ProfilePicture, opt => opt.MapFrom(src => src.ProfilePicture));
+
             CreateMap<ApplicationUserPatchModel, ApplicationUser>().MapOnlyIfChanged();
         }
     }

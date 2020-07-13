@@ -30,17 +30,14 @@ namespace Services.AuctionService.Service
         /// </summary>
         private readonly IUnitOfWork _unitOfWork;
 
-        private readonly ILogger _logger;
-
         /// <summary>
         /// Constructor that create <seealso cref="AuctionService"/> instance
         /// </summary>
         /// <param name="mapper">Mapper <seealso cref="IMapper"/></param>
         /// <param name="unitOfWork">Unit of work <seealso cref="IUnitOfWork"/></param>
-        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork, ILoggerFactory loggerFactory)
+        public AuctionService(IMapper mapper, IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _logger = loggerFactory.CreateLogger(typeof(AuctionService));
             _mapper = mapper;
         }
 
@@ -87,13 +84,13 @@ namespace Services.AuctionService.Service
                 .Include(a => a.Images)
                 .Include(a => a.Creator)
                 .Include(a => a.Categories)
-                .ThenInclude(x => x.Category);
+                .ThenInclude(x => x.Category)
+                .OrderByDescending(a => a.CreationTime);
 
             if (filters == null)
                 return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(await auctionQuery.Skip(offsetVal).Take(limitVal).ToListAsync());
 
             var filtered = auctionQuery.ApplyFilters(filters);
-            _logger.LogInformation(filtered.ToSql());
             return _mapper.Map<IEnumerable<Auction>, IEnumerable<AuctionDTO>>(await filtered.Skip(offsetVal).Take(limitVal).ToListAsync());
 
         }
@@ -187,14 +184,14 @@ namespace Services.AuctionService.Service
                 var latestBid = latestBids.First();
                 if (latestBid.Price > price && Math.Abs(latestBid.Price - price) < auction.PriceStep)
                 {
-                    throw new UserException(200, "Price can't be less then latest price with price step");
+                    throw new UserException(400, "Price can't be less then latest price with price step");
                 }
             }
             else
             {
                 if (Math.Abs(auction.StartPrice - price) < auction.PriceStep)
                 {
-                    throw new UserException(200, "Price can't be less then start price with price step");
+                    throw new UserException(400, "Price can't be less then start price with price step");
                 }
             }
 
@@ -202,6 +199,48 @@ namespace Services.AuctionService.Service
             await _unitOfWork.CommitAsync();
 
             return _mapper.Map<Bid, BidDTO>(bid); 
+        }
+
+        public async Task<decimal> GetCurrentPriceAsync(Guid auctionId)
+        {
+            var latestBids = await _unitOfWork.Find<Bid>(b => b.AuctionId == auctionId)
+                .OrderByDescending(a => a.Time)
+                .Take(1)
+                .ToListAsync();
+
+            if (latestBids.Any())
+            {
+                return latestBids.First().Price;
+            }
+            else
+            {
+                return (await GetAuctionAsync(auctionId)).StartPrice;
+            }
+        }
+
+        public async Task<IEnumerable<BidDTO>> GetBidsAsync(Guid auctionId, int? limit, int? offset)
+        {
+            var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
+            var offsetVal = offset ?? 0;
+
+            var latestBids = await _unitOfWork.Find<Bid>(b => b.AuctionId == auctionId)
+                .OrderByDescending(a => a.Price)
+                .Take(limitVal)
+                .Skip(offsetVal)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<Bid>, IEnumerable<BidDTO>>(latestBids);
+        }
+
+        public async Task<IEnumerable<ParticipantDTO>> GetParticipantsAsync(Guid auctionId)
+        {
+            var users = _unitOfWork.Find<Bid>(b => b.AuctionId == auctionId)
+                .Include(b => b.User)
+                .ThenInclude(a => a.ProfilePicture)
+                .Select(b => b.User)
+                .Distinct();
+
+            return _mapper.Map<IEnumerable<ApplicationUser>, IEnumerable<ParticipantDTO>>(await users.ToListAsync());
         }
 
         /// <summary>

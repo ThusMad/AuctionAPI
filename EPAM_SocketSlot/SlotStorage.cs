@@ -18,7 +18,10 @@ namespace EPAM_SocketSlot
 
         public async Task NotifySlotsAsync(Guid slotId, string data)
         {
-            _slots[slotId].NotifyAllSubscribers(data);
+            if (_slots.ContainsKey(slotId))
+            {
+                _slots[slotId].NotifyAllSubscribers(data);
+            }
         }
 
         public async Task AddSubscriber(Guid slotId, WebSocket webSocket, TaskCompletionSource<object> socketFinishedTcs)

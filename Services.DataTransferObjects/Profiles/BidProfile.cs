@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Collections.Generic;
+using AutoMapper;
 using Services.DataTransferObjects.Objects;
 using EPAM_DataAccessLayer.Entities;
 

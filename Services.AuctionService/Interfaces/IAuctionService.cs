@@ -44,9 +44,14 @@ namespace Services.AuctionService.Interfaces
         /// <param name="id">id of searched auction</param>
         /// <returns><see cref="AuctionDTO"/> instance</returns>
         Task<AuctionDTO> GetByIdAsync(Guid id);
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionId"></param>
+        /// <param name="userId"></param>
+        /// <param name="mediaUrls"></param>
+        /// <returns></returns>
         Task AttachMediaAsync(Guid auctionId, Guid userId, string[] mediaUrls);
-
         /// <summary>
         /// 
         /// </summary>
@@ -55,5 +60,25 @@ namespace Services.AuctionService.Interfaces
         /// <param name="bid"></param>
         /// <returns></returns>
         Task<BidDTO> InsertBidAsync(Guid auctionId, Guid userId, decimal price);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionId"></param>
+        /// <returns></returns>
+        Task<decimal> GetCurrentPriceAsync(Guid auctionId);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionId"></param>
+        /// <param name="limit"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        Task<IEnumerable<BidDTO>> GetBidsAsync(Guid auctionId, int? limit, int? offset);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="auctionId"></param>
+        /// <returns></returns>
+        Task<IEnumerable<ParticipantDTO>> GetParticipantsAsync(Guid auctionId);
     }
 }

@@ -8,7 +8,7 @@ namespace Services.DataTransferObjects.Objects
     public class BidDTO
     {
         [JsonPropertyName("id")]
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         [JsonPropertyName("userId")]
         public Guid UserId { get; set; }
         [JsonPropertyName("auctionId")]

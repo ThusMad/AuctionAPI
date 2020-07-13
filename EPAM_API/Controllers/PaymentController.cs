@@ -81,7 +81,7 @@ namespace EPAM_API.Controllers
         }
 
         [HttpPost, Route("methods/setDefault")]
-        public async Task<IActionResult> SetDefaultPaymentMethods(Guid methodId)
+        public async Task<IActionResult> SetDefaultPaymentMethods([FromQuery]Guid methodId)
         {
             await _paymentService.SetDefaultPaymentMethodAsync(_userProvider.GetUserId(), methodId);
             return Ok();

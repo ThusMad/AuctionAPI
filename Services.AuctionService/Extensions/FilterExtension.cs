@@ -13,6 +13,40 @@ namespace Services.AuctionService.Extensions
 {
     public static class FilterExtensions
     {
+
+        private static Dictionary<string, bool> _filterMap;
+
+        static FilterExtensions()
+        {
+            _filterMap = new Dictionary<string, bool>()
+            {
+                {
+                    "type", true
+                },
+                {
+                    "created", true
+                },
+                {
+                    "category", true
+                },
+                {
+                    "user", true
+                },
+                {
+                    "userId", true
+                },
+                {
+                    "name", true
+                },
+                {
+                    "completed", true
+                },
+                {
+                    "started", false
+                }
+            };
+        }
+
         public static IQueryable<Auction> FilterByCategory(this IQueryable<Auction> queryable, string categoriesRaw)
         {
             var categories = categoriesRaw.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -20,6 +54,14 @@ namespace Services.AuctionService.Extensions
             queryable = queryable.Where(auction => auction.Categories.Count(auctionCategory => categories.Contains(auctionCategory.Category.Name)) == categories.Count);
             return queryable;
         }
+
+        public static IQueryable<Auction> FilterByCompleted(this IQueryable<Auction> queryable, bool isCompleted)
+        {
+            var currentTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds() * 1000;
+
+            return isCompleted ? queryable.Where(auction => auction.EndTime < currentTime) : queryable.Where(auction => auction.EndTime > currentTime);
+        }
+
         public static IQueryable<Auction> FilterByCreationTime(this IQueryable<Auction> queryable, string value)
         {
             var range = value.Split("-", StringSplitOptions.RemoveEmptyEntries);
@@ -66,9 +108,10 @@ namespace Services.AuctionService.Extensions
 
             foreach (var filter in filtersArray)
             {
-                if(filter != "started")
+                var filterData = filter.Split("=", StringSplitOptions.RemoveEmptyEntries);
+
+                if (_filterMap[filterData[0]])
                 {
-                    var filterData = filter.Split("=", StringSplitOptions.RemoveEmptyEntries);
                     var (key, value) = new KeyValuePair<string, string>(filterData[0], filterData[1]);
 
                     filtered = key switch
@@ -79,11 +122,17 @@ namespace Services.AuctionService.Extensions
                         "user" => filtered.FilterByUserName(value),
                         "userId" => filtered.FilterByUserId(value),
                         "name" => filtered.Search(value),
+                        "completed" => filtered.FilterByCompleted(bool.Parse(value)),
                         _ => filtered
                     };
                 }
                 else
                 {
+                    filtered = filter switch
+                    {
+                        "started" => filtered.FilterByStarted(),
+                        _ => filtered
+                    };
                     filtered = filtered.FilterByStarted();
                 }
             }

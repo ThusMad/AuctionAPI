@@ -19,11 +19,11 @@ namespace EPAM_API.Controllers
         private readonly ISlotStorage _slotStorage;
         private readonly IUserProvider _userProvider;
 
-        public AuctionController(IUserProvider userProvider, IAuctionService auctionService)
+        public AuctionController(IUserProvider userProvider, IAuctionService auctionService, ISlotStorage slotStorage)
         {
             _userProvider = userProvider;
             _auctionService = auctionService;
-            //_slotStorage = slotStorage;
+            _slotStorage = slotStorage;
         }
 
         [Authorize]
@@ -88,19 +88,37 @@ namespace EPAM_API.Controllers
             return NotFound();
         }
 
+        [AllowAnonymous]
         [HttpGet, Route("currentPrice")]
-        public IActionResult GetCurrentPrice(Guid auctionId)
+        public async Task<IActionResult> GetCurrentPrice(Guid auctionId)
         {
-            return Ok();
+            var price = await _auctionService.GetCurrentPriceAsync(auctionId);
+            return Ok(JsonSerializer.Serialize(price));
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("getAllBids")]
+        public async Task<IActionResult> GetAllBids(Guid id, int? limit, int? offset)
+        {
+            var bids = await _auctionService.GetBidsAsync(id, limit, offset);
+            return Ok(JsonSerializer.Serialize(bids));
         }
 
         [Authorize]
-        [HttpPost, Route("bid")]
+        [HttpGet, Route("bid")]
         public async Task<IActionResult> PlaceBid(Guid auctionId, decimal price)
         {
             var bid = await _auctionService.InsertBidAsync(auctionId, _userProvider.GetUserId(), price);
             await _slotStorage.NotifySlotsAsync(auctionId, JsonSerializer.Serialize(bid));
             return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("getParticipants")]
+        public async Task<IActionResult> GetParticipants(Guid auctionId)
+        {
+            var users = await _auctionService.GetParticipantsAsync(auctionId);
+            return Ok(JsonSerializer.Serialize(users));
         }
 
     }
