@@ -29,13 +29,16 @@ namespace EPAM_API.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpPost, Route("create")]
-        public IActionResult CreatePayment(Guid id)
+        public async Task<IActionResult> CreatePayment(Guid auctionId)
         {
-            return Ok();
+            var userId = _userProvider.GetUserId();
+            var payment = await _paymentService.InsertAuctionPaymentAsync(userId, auctionId);
+            return Ok(JsonSerializer.Serialize(payment));
         }
 
-        [HttpDelete, Route("create")]
+        [HttpDelete]
         public IActionResult DeletePayment(Guid id)
         {
             return Ok();
@@ -112,7 +115,7 @@ namespace EPAM_API.Controllers
 
         #region Infos
 
-        [HttpPost, Route("create")]
+        [HttpPost, Route("getInfo")]
         public IActionResult GetPaymentInfo(Guid id)
         {
             return Ok();

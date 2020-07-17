@@ -85,6 +85,10 @@ namespace Services.BalanceService.Service
 
         public async Task RefillBalanceAsync(Guid userId, Guid paymentMethodId, decimal amount)
         {
+            if (amount <= 0)
+            {
+                throw new UserException(400, "Amount can't be 0 or less");
+            }
             var paymentMethod = await GetPaymentMethodByIdAsync(paymentMethodId);
             var balance = await GetBalanceByUserIdAsync(userId);
 
@@ -139,9 +143,9 @@ namespace Services.BalanceService.Service
             var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
             var offsetVal = offset ?? 0;
 
-            var user = await GetBalanceTransactionByIdAsync(userId);
+            var balance = await GetBalanceByUserIdAsync(userId);
 
-            var transactionsQuery = _unitOfWork.Find<BalanceTransaction>(t => t.BalanceId == user.BalanceId)
+            var transactionsQuery = _unitOfWork.Find<BalanceTransaction>(t => t.BalanceId == balance.Id)
                 .Skip(offsetVal)
                 .Take(limitVal);
 

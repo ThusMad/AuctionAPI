@@ -17,6 +17,7 @@ namespace Services.DataTransferObjects.Profiles
                 .ForMember(a=> a.UserId, opt => opt.MapFrom(b => b.UserId))
                 .ForMember(a => a.PaymentMethodId, opt => opt.MapFrom(b => b.Id));
             CreateMap<PaymentMethodDTO, PaymentMethod>();
+            CreateMap<Payment, PaymentDTO>();
         }
 
         private static void HideSensitive(PaymentMethod auctionDto, PaymentMethodDTO auction)

@@ -185,7 +185,7 @@ namespace Services.PaymentService.Service
             return _mapper.Map<IEnumerable<Payment>, IEnumerable<PaymentDTO>>(await payments.ToListAsync());
         }
 
-        public async Task InsertAuctionPaymentAsync(Guid userId, Guid auctionId)
+        public async Task<PaymentDTO> InsertAuctionPaymentAsync(Guid userId, Guid auctionId)
         {
             var auction = await _unitOfWork.GetByIdAsync<Auction>(auctionId);
 
@@ -214,10 +214,12 @@ namespace Services.PaymentService.Service
             var winner = await _userManager.FindByIdAsync(bids.First().UserId);
             var roles = await _userManager.GetRolesAsync(winner);
 
-            var payment = new Payment(winner.Id, auction.UserId, new Fee(bids.First().Price).GetFeePrice(roles), auction.Title);
+            var payment = new Payment(winner.Id, auction.UserId, new Fee(bids.Last().Price).GetFeePrice(roles), auction.Title);
 
             await _unitOfWork.InsertAsync(payment);
             await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<Payment, PaymentDTO>(payment);
         }
 
         #endregion

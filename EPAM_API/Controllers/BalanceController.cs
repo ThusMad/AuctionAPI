@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
@@ -40,6 +41,26 @@ namespace EPAM_API.Controllers
             var balance = await _balanceService.GetBalanceByIdAsync(balanceId, userId);
 
             return Ok(JsonSerializer.Serialize(balance));
+        }
+
+        [Authorize]
+        [HttpPost, Route("refill")]
+        public async Task<IActionResult> RefillBalance(Guid methodId, decimal amount)
+        {
+            var userId = _userProvider.GetUserId();
+            await _balanceService.RefillBalanceAsync(userId, methodId, amount);
+
+            return Ok();
+        }
+
+        [Authorize]
+        [HttpGet, Route("transactions")]
+        public async Task<IActionResult> GetTransactions(int? limit, int? offset)
+        {
+            var userId = _userProvider.GetUserId();
+            var transactions = await _balanceService.GetAllBalanceTransactionsAsync(userId, limit, offset);
+            transactions.Reverse();
+            return Ok(JsonSerializer.Serialize(transactions));
         }
     }
 }

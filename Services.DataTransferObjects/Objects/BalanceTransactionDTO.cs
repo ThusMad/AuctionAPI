@@ -9,13 +9,13 @@ namespace Services.DataTransferObjects.Objects
     {
         [JsonPropertyName("id")]
         public Guid Id { get; set; }
-        [JsonPropertyName("balance_id")]
+        [JsonPropertyName("balanceId")]
         public Guid BalanceId { get; set; }
         [JsonPropertyName("amount")]
         public decimal Amount { get; set; }
         [JsonPropertyName("description")]
         public string Description { get; set; }
-        [JsonPropertyName("transaction_type")]
+        [JsonPropertyName("transactionType")]
         public TransactionType TransactionType { get; set; }
     }
 }

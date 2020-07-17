@@ -16,6 +16,6 @@ namespace Services.PaymentService.Interfaces
         Task SetDefaultPaymentMethodAsync(Guid userId, Guid paymentMethodId);
         Task<PaymentDTO> GetPaymentAsync(Guid id);
         Task<IEnumerable<PaymentDTO>> GetAllPaymentsAsync(int? limit, int? offset);
-        Task InsertAuctionPaymentAsync(Guid userId, Guid auctionId);
+        Task<PaymentDTO> InsertAuctionPaymentAsync(Guid userId, Guid auctionId);
     }
 }
