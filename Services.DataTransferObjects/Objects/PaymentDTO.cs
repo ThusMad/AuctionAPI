@@ -11,19 +11,19 @@ namespace Services.DataTransferObjects.Objects
         public Guid Id { get; set; }
         [JsonPropertyName("amount")]
         public decimal Amount { get; set; }
-        [JsonPropertyName("creation_time")]
+        [JsonPropertyName("creationTime")]
         public long TimeOfCreation { get; set; }
-        [JsonPropertyName("payment_time")]
+        [JsonPropertyName("paymentTime")]
         public long TimeOfPayment { get; set; }
-        [JsonPropertyName("description_time")]
+        [JsonPropertyName("description")]
         public string Description { get; set; }
-        [JsonPropertyName("payment_status")]
+        [JsonPropertyName("paymentStatus")]
         public PaymentStatus Status { get; set; }
-        [JsonPropertyName("payment_type")]
+        [JsonPropertyName("paymentType")]
         public PaymentType Type { get; set; }
-        [JsonPropertyName("sender_id")]
+        [JsonPropertyName("senderId")]
         public string SenderId { get; set; }
-        [JsonPropertyName("recipient_id")]
+        [JsonPropertyName("recipientId")]
         public string? RecipientId { get; set; }
     }
 }

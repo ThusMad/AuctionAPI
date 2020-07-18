@@ -175,12 +175,14 @@ namespace Services.PaymentService.Service
             return _mapper.Map<Payment, PaymentDTO>(payment);
         }
 
-        public async Task<IEnumerable<PaymentDTO>> GetAllPaymentsAsync(int? limit, int? offset)
+        public async Task<IEnumerable<PaymentDTO>> GetAllPaymentsAsync(Guid userId, int? limit, int? offset)
         {
             var limitVal = limit == null || limit > 20 ? 20 : limit.Value;
             var offsetVal = offset ?? 0;
 
-            var payments = _unitOfWork.GetAll<Payment>(limitVal, offsetVal);
+            var payments = _unitOfWork.Find<Payment>(payment => payment.RecipientId == userId.ToString())
+                .Skip(offsetVal)
+                .Take(limitVal);
 
             return _mapper.Map<IEnumerable<Payment>, IEnumerable<PaymentDTO>>(await payments.ToListAsync());
         }
@@ -204,7 +206,7 @@ namespace Services.PaymentService.Service
                 throw new UserException(200, "Unable to request payment at unfinished auction");
             }
 
-            var bids = await _unitOfWork.Find<Bid>(b => b.AuctionId == auction.Id).OrderBy(a => a.Price).ToListAsync();
+            var bids = await _unitOfWork.Find<Bid>(b => b.AuctionId == auction.Id).OrderByDescending(a => a.Price).ToListAsync();
 
             if (!bids.Any())
             {
@@ -214,7 +216,7 @@ namespace Services.PaymentService.Service
             var winner = await _userManager.FindByIdAsync(bids.First().UserId);
             var roles = await _userManager.GetRolesAsync(winner);
 
-            var payment = new Payment(winner.Id, auction.UserId, new Fee(bids.Last().Price).GetFeePrice(roles), auction.Title);
+            var payment = new Payment(auction.UserId, winner.Id, new Fee(bids.Last().Price).GetFeePrice(roles), auction.Title);
 
             await _unitOfWork.InsertAsync(payment);
             await _unitOfWork.CommitAsync();

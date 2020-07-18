@@ -44,16 +44,22 @@ namespace EPAM_API.Controllers
             return Ok();
         }
 
+        [Authorize]
         [HttpGet]
-        public IActionResult GetPayment(Guid id)
+        public async Task<IActionResult> GetPayment(Guid id)
         {
             return Ok();
+            
         }
 
+        [Authorize]
         [HttpGet, Route("getAll")]
-        public IActionResult GetAllPayments(int? limit, int? offset)
+        public async Task<IActionResult> GetAllPayments(int? limit, int? offset)
         {
-            return Ok();
+            var userId = _userProvider.GetUserId();
+            var payments = await _paymentService.GetAllPaymentsAsync(userId, limit, offset);
+
+            return Ok(JsonSerializer.Serialize(payments));
         }
 
         [HttpGet, Route("statistic")]

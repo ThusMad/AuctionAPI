@@ -45,7 +45,7 @@ namespace EPAM_API.Middlewares
                 }
                 if (!TimestampValidator.Validate(timestampVal, recvWindowVal))
                 {
-                    context.Response.StatusCode = 400;
+                    context.Response.StatusCode = 466;
                     await context.Response.WriteAsync($"Timestamp for this request is outside of the recvWindow");
                 }
                 else
