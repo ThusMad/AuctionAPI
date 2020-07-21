@@ -6,6 +6,11 @@ namespace EPAM_DataAccessLayer.Entities
     {
         public Guid Id { get; set; }
         public string Url { get; set; }
+
+        public Media()
+        {
+        }
+
         public Media(string url)
         {
             Url = url;

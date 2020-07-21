@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EPAM_DataAccessLayer.Configurations
 {
-    public class BalanceTransactionsConfiguration : IEntityTypeConfiguration<BalanceTransactions>
+    public class BalanceTransactionsConfiguration : IEntityTypeConfiguration<BalanceTransaction>
     {
-        public void Configure(EntityTypeBuilder<BalanceTransactions> builder)
+        public void Configure(EntityTypeBuilder<BalanceTransaction> builder)
         {
             builder.ToTable("BalanceTransactions")
                 .HasIndex(a => a.Id)

@@ -10,8 +10,12 @@ namespace EPAM_DataAccessLayer.Configurations
         {
             builder.ToTable("Users");
 
-            builder.Property(b => b.Balance)
-                .ValueGeneratedOnAdd();
+            builder.HasOne(bc => bc.Balance)
+                .WithOne(b => b.User)
+                .HasForeignKey<Balance>(a => a.UserId)
+                .IsRequired();
+
+            builder.HasOne(u => u.ProfilePicture);
         }
     }
 }

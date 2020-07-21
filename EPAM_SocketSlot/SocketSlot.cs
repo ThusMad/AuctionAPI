@@ -11,7 +11,7 @@ using EPAM_SocketSlot.Interfaces;
 
 namespace EPAM_SocketSlot
 {
-    class SocketSlot : ISocketSlot
+    public class SocketSlot : ISocketSlot
     {
         private readonly List<WebSocket> _sockets;
 

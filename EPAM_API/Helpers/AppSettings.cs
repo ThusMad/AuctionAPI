@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace EPAM_API.Helpers
+﻿namespace EPAM_API.Helpers
 {
     public class AppSettings
     {
         public string Secret { get; set; }
-
+        public string ConnectionString { get; set; }
     }
 }

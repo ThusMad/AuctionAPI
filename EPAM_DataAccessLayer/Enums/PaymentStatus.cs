@@ -10,9 +10,13 @@
         /// </summary>
         Cancelled,
         /// <summary>
+        /// Payment waiting for some actions
+        /// </summary>
+        Awaiting,
+        /// <summary>
         /// Payment was Completed
         /// </summary>
-        Confirmed,
+        Completed,
         /// <summary>
         /// Payment actually pended
         /// </summary>

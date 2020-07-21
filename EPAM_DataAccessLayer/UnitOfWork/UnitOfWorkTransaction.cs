@@ -32,7 +32,16 @@ namespace EPAM_DataAccessLayer.UnitOfWork
 
         public void Commit()
         {
-            _unitOfWork.Commit();
+            try
+            {
+                _unitOfWork.Commit();
+            }
+            catch (Exception e)
+            {
+                Rollback();
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         public async Task CommitAsync(CancellationToken cancellationToken = default)
@@ -80,14 +89,14 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             _unitOfWork.UpdateRange(entities);
         }
 
-        public TEntity Delete<TEntity>(TEntity entity) where TEntity : class
+        public TEntity Remove<TEntity>(TEntity entity) where TEntity : class
         {
-            return _unitOfWork.Delete(entity);
+            return _unitOfWork.Remove(entity);
         }
 
-        public void DeleteRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
+        public void RemoveRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
         {
-            _unitOfWork.DeleteRange(entities);
+            _unitOfWork.RemoveRange(entities);
         }
 
         public IEnumerable<TEntity> Find<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class

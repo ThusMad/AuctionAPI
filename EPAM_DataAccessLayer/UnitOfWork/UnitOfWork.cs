@@ -15,6 +15,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace EPAM_DataAccessLayer.UnitOfWork
 {
@@ -51,27 +52,28 @@ namespace EPAM_DataAccessLayer.UnitOfWork
         }
 
         // TODO: Remove
-        //private async Task SeedRoles()
-        //{
-        //    string[] roles = { "Owner", "Administrator", "Moderator", "User", "Premium", "Plus" };
-        //    var roleStore = new RoleStore<IdentityRole>(Context)
-        //    {
-        //        AutoSaveChanges = true
-        //    };
+        private async Task SeedRoles()
+        {
+            string[] roles = { "Owner", "Administrator", "Moderator", "User", "Premium", "Plus" };
+            var roleStore = new RoleStore<IdentityRole>(Context)
+            {
+                AutoSaveChanges = true
+            };
 
-        //    foreach (var role in roles)
-        //    {
-        //        if (Context.Roles.Any(r => r.Name == role)) {
-        //            continue;
-        //        }
+            foreach (var role in roles)
+            {
+                if (Context.Roles.Any(r => r.Name == role))
+                {
+                    continue;
+                }
 
-        //        var nr = new IdentityRole(role)
-        //        {
-        //            NormalizedName = role.ToUpper()
-        //        };
-        //        await roleStore.CreateAsync(nr);
-        //    }
-        //}
+                var nr = new IdentityRole(role)
+                {
+                    NormalizedName = role.ToUpper()
+                };
+                await roleStore.CreateAsync(nr);
+            }
+        }
 
         /// <summary>
         /// Method that formats exceptions
@@ -200,12 +202,12 @@ namespace EPAM_DataAccessLayer.UnitOfWork
             Repository<TEntity>().UpdateRange(entities);
         }
 
-        public TEntity Delete<TEntity>(TEntity entity) where TEntity : class
+        public TEntity Remove<TEntity>(TEntity entity) where TEntity : class
         {
             return Repository<TEntity>().Remove(entity);
         }
 
-        public void DeleteRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
+        public void RemoveRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class
         {
             Repository<TEntity>().RemoveRange(entities);
         }

@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using Services.CategoryService.Interfaces;
+using Services.DataTransferObjects.Objects;
 
 namespace EPAM_API.Controllers
 {
@@ -25,9 +22,9 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetCategory(Guid id)
+        public async Task<IActionResult> GetCategory(Guid id)
         {
-            var category = _categoryService.GetCategory(id);
+            var category = await _categoryService.GetCategoryAsync(id);
 
             return Ok(JsonSerializer.Serialize(category));
         }
@@ -61,9 +58,9 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet, Route("getAll")]
-        public IActionResult GetCategories(int? limit, int? offset)
+        public async Task<IActionResult> GetCategories(int? limit, int? offset)
         {
-            var categories = _categoryService.GetCategories(limit, offset);
+            var categories = await _categoryService.GetCategoriesAsync(limit, offset);
 
             return Ok(JsonSerializer.Serialize(categories));
         }

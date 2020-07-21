@@ -8,15 +8,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.5" />
     <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Owin" Version="3.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Owin" Version="3.1.5" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.1.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EPAM_BusinessLogicLayer\EPAM_BusinessLogicLayer.csproj" />
     <ProjectReference Include="..\EPAM_SocketSlot\EPAM_SocketSlot.csproj" />
+    <ProjectReference Include="..\Services.AccountService\Services.AccountService.csproj" />
+    <ProjectReference Include="..\Services.AuctionService\Services.AuctionService.csproj" />
+    <ProjectReference Include="..\Services.BalanceService\Services.BalanceService.csproj" />
+    <ProjectReference Include="..\Services.CategoryService\Services.CategoryService.csproj" />
+    <ProjectReference Include="..\Services.DatabaseExtensions\Services.DatabaseExtensions.csproj" />
+    <ProjectReference Include="..\Services.PaymentService\Services.PaymentService.csproj" />
+    <ProjectReference Include="..\Services.TokenService\Services.TokenService.csproj" />
+    <ProjectReference Include="..\Services.UploadService\Services.UploadService.csproj" />
   </ItemGroup>
 
 

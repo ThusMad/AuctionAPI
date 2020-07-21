@@ -1,15 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EPAM_API.Models;
 using EPAM_API.Services.Interfaces;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Services.AccountService.Interfaces;
+using Services.DataTransferObjects.Objects;
+using Services.TokenService.Interfaces;
 
 namespace EPAM_API.Controllers
 {
@@ -96,7 +96,7 @@ namespace EPAM_API.Controllers
 
             var userId = _tokenProvider.GetUserIdFromExpiredToken(token);
 
-            if (!_tokenService.CheckTokenIdentity(userId, refreshToken))
+            if (!await _tokenService.CheckTokenIdentityAsync(userId, refreshToken))
             {
                 return BadRequest("Refresh token for current user don't match with stored");
             }

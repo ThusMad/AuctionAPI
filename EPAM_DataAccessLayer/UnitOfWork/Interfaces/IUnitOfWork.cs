@@ -108,13 +108,13 @@ namespace EPAM_DataAccessLayer.UnitOfWork.Interfaces
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="entity">instance of <seealso cref="TEntity"/></param>
         /// <returns>instance of removed entity</returns>
-        TEntity Delete<TEntity>(TEntity entity) where TEntity : class;
+        TEntity Remove<TEntity>(TEntity entity) where TEntity : class;
         /// <summary>
         /// Removes collection of entities from <see cref="IRepository{TEntity}"/>
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <param name="entities">Collection of <seealso cref="TEntity"/></param>
-        void DeleteRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class;
+        void RemoveRange<TEntity>(IEnumerable<TEntity> entities) where TEntity : class;
         /// <summary>
         /// Finds collection of <see cref="IRepository{TEntity}"/> which satisfy the condition 
         /// </summary>

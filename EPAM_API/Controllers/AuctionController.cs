@@ -3,11 +3,11 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using EPAM_API.Services.Interfaces;
 using EPAM_BusinessLogicLayer.BusinessModels;
-using EPAM_BusinessLogicLayer.DataTransferObjects;
-using EPAM_BusinessLogicLayer.Services.Interfaces;
 using EPAM_SocketSlot.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Services.AuctionService.Interfaces;
+using Services.DataTransferObjects.Objects;
 
 namespace EPAM_API.Controllers
 {
@@ -42,9 +42,9 @@ namespace EPAM_API.Controllers
 
         [AllowAnonymous]
         [HttpGet]
-        public IActionResult Get(Guid id)
+        public async Task<IActionResult> Get(Guid id)
         {
-            var auction = _auctionService.GetByIdAsync(id);
+            var auction = await _auctionService.GetByIdAsync(id);
 
             return Ok(JsonSerializer.Serialize(auction));
         }
@@ -54,6 +54,16 @@ namespace EPAM_API.Controllers
         public async Task<IActionResult> GetAll(string? filters, int? limit, int? offset)
         {
             var auctions = await _auctionService.GetAllAsync(filters, limit, offset);
+
+            return Ok(JsonSerializer.Serialize(auctions));
+        }
+
+        [Authorize]
+        [HttpGet, Route("my")]
+        public async Task<IActionResult> GetMyAuctions(int? limit, int? offset)
+        {
+            var userId = _userProvider.GetUserId();
+            var auctions = await _auctionService.GetAllAsync($"userId={userId}", limit, offset);
 
             return Ok(JsonSerializer.Serialize(auctions));
         }
@@ -78,19 +88,37 @@ namespace EPAM_API.Controllers
             return NotFound();
         }
 
+        [AllowAnonymous]
         [HttpGet, Route("currentPrice")]
-        public IActionResult GetCurrentPrice(Guid auctionId)
+        public async Task<IActionResult> GetCurrentPrice(Guid auctionId)
         {
-            return Ok();
+            var price = await _auctionService.GetCurrentPriceAsync(auctionId);
+            return Ok(JsonSerializer.Serialize(price));
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("getAllBids")]
+        public async Task<IActionResult> GetAllBids(Guid id, int? limit, int? offset)
+        {
+            var bids = await _auctionService.GetBidsAsync(id, limit, offset);
+            return Ok(JsonSerializer.Serialize(bids));
         }
 
         [Authorize]
-        [HttpPost, Route("bid")]
+        [HttpGet, Route("bid")]
         public async Task<IActionResult> PlaceBid(Guid auctionId, decimal price)
         {
             var bid = await _auctionService.InsertBidAsync(auctionId, _userProvider.GetUserId(), price);
             await _slotStorage.NotifySlotsAsync(auctionId, JsonSerializer.Serialize(bid));
             return Ok();
+        }
+
+        [AllowAnonymous]
+        [HttpGet, Route("getParticipants")]
+        public async Task<IActionResult> GetParticipants(Guid auctionId)
+        {
+            var users = await _auctionService.GetParticipantsAsync(auctionId);
+            return Ok(JsonSerializer.Serialize(users));
         }
 
     }

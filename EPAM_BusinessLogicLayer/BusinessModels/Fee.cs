@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace EPAM_BusinessLogicLayer.BusinessModels
 {
-    class Fee
+    public class Fee
     {
-        private decimal _value = 0;
-        public decimal Value { get { return _value; } }
+        public decimal Value { get; }
+
         public decimal GetFeePrice(IEnumerable<string> roles)
         {
             if (roles.Contains(Roles.Premium))
             {
-                return _value * 1.025M;
+                return Value * 1.025M;
             }
             else {
-                return _value * 1.05M;
+                return Value * 1.05M;
             }
         }
 
         public Fee(decimal val)
         {
-            _value = val;
+            Value = val;
         }
     }
 }
