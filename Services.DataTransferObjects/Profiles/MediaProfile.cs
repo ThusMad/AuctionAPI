@@ -3,7 +3,7 @@ using EPAM_DataAccessLayer.Entities;
 
 namespace Services.DataTransferObjects.Profiles
 {
-    class MediaProfile : Profile
+    public class MediaProfile : Profile
     {
         public MediaProfile()
         {

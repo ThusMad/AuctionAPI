@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using EPAM_DataAccessLayer.Entities;
@@ -52,6 +53,21 @@ namespace Services.CategoryService.Service
                 .ForEach(async a => await _unitOfWork.InsertAsync(a));
 
             await _unitOfWork.CommitAsync();
+        }
+
+        public async Task<AuctionCategoryDto> AddCategoryAsync(AuctionCategoryDto category)
+        {
+            if (await _unitOfWork.AnyAsync<Category>(c => c.Name == category.Name))
+            {
+                new UserException(400, "Category with following name already exists!");
+            }
+
+            var categoryEntity = _mapper.Map<AuctionCategoryDto, Category>(category);
+
+            var result = await _unitOfWork.InsertAsync(categoryEntity, CancellationToken.None);
+            await _unitOfWork.CommitAsync();
+
+            return _mapper.Map<Category, AuctionCategoryDto>(result);
         }
 
         public async Task DeleteCategoryAsync(Guid id)

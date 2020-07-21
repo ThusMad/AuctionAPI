@@ -5,7 +5,7 @@ using Services.DataTransferObjects.Extensions;
 
 namespace Services.DataTransferObjects.Profiles
 {
-    class ApplicationUserProfile : Profile
+    public class ApplicationUserProfile : Profile
     {
         public ApplicationUserProfile()
         {
